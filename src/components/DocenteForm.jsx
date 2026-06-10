@@ -51,7 +51,6 @@ const DocenteForm = () => {
     { value: 'cursando', label: 'CURSANDO MAESTRÍA' },
     { value: 'magister', label: 'MAGÍSTER' },
     { value: 'doctor', label: 'DOCTOR' },
-    { value: 'postdoctor', label: 'POSTDOCTOR' }
   ]
 
   // Opciones para el género
