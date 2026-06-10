@@ -552,7 +552,7 @@ const DocenteForm = () => {
         {/* Certificaciones - Microsoft Office 2019 */}
         <div className="form-section">
           <h3>📄 Certificación Microsoft Office - 2019</h3>
-          <p className="section-description">Seleccione las certificaciones que posee y suba los archivos correspondientes</p>
+<p className="enlace-certiport">Ingresar a <a href="https://www.certiport.com" target="_blank" rel="noopener noreferrer">www.certiport.com</a></p>
           
           <div className="certificaciones-grid">
             {/* Word Asociado 2019 */}
@@ -695,7 +695,7 @@ const DocenteForm = () => {
         {/* Certificaciones - Microsoft Office 365 */}
         <div className="form-section">
           <h3>📄 Certificación Microsoft Office - 365</h3>
-          <p className="section-description">Seleccione las certificaciones que posee y suba los archivos correspondientes</p>
+<p className="enlace-certiport">Ingresar a <a href="https://www.certiport.com" target="_blank" rel="noopener noreferrer">www.certiport.com</a></p>
           
           <div className="certificaciones-grid">
             <div className="certificacion-card">

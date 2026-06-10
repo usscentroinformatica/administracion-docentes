@@ -570,3 +570,26 @@
     font-size: 13px;
   }
 }
+
+/* ======================================== */
+/* ESTILOS PARA EL ENLACE DE CERTIPORT */
+/* ======================================== */
+
+.enlace-certiport {
+  color: #5a2290;
+  font-size: 13px;
+  margin-top: -10px;
+  margin-bottom: 20px;
+}
+
+.enlace-certiport a {
+  color: #11acd3;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.enlace-certiport a:hover {
+  color: #63ed12;
+  text-decoration: underline;
+}
