@@ -244,44 +244,64 @@ const DocenteForm = () => {
 const handleSubmit = async (e) => {
   e.preventDefault()
   
-  console.log('1️⃣ Iniciando proceso de envío...');
+  console.log('=========================================');
+  console.log('🚀 INICIANDO ENVÍO DEL FORMULARIO');
+  console.log('=========================================');
   
-  if (!validarFormulario()) {
-    console.log('2️⃣ Validación fallida');
+  // Validar formulario
+  console.log('📋 Paso 1: Validando formulario...');
+  const esValido = validarFormulario();
+  
+  if (!esValido) {
+    console.log('❌ Validación fallida');
+    setLoading(false);
     return;
   }
-
-  console.log('2️⃣ Validación exitosa');
+  
+  console.log('✅ Validación exitosa');
   setLoading(true)
 
   try {
-    console.log('3️⃣ Convirtiendo foto a Base64...');
-    // 1. Guardar datos del docente (incluyendo foto en Base64)
+    // Verificar que hay foto
+    if (!fotoDocente.archivo) {
+      throw new Error('No hay foto seleccionada');
+    }
+    
+    console.log('📸 Paso 2: Convirtiendo foto a Base64...');
+    const fotoBase64 = await archivoToBase64(fotoDocente.archivo);
+    console.log('✅ Foto convertida, tamaño:', (fotoBase64.length / 1024).toFixed(2), 'KB');
+    
+    // Preparar datos del docente
     const docenteData = {
       ...formData,
-      fotoBase64: await archivoToBase64(fotoDocente.archivo),
+      fotoBase64: fotoBase64,
       fotoNombre: fotoDocente.nombreArchivo
     }
     
-    console.log('4️⃣ Enviando a guardarDocente...');
+    console.log('👤 Paso 3: Guardando docente en Firebase...');
+    console.log('   - Nombre:', docenteData.nombres);
+    console.log('   - DNI:', docenteData.dni);
+    
     const resultadoDocente = await guardarDocente(docenteData);
     
-    console.log('5️⃣ Resultado guardarDocente:', resultadoDocente);
+    console.log('📤 Respuesta de guardarDocente:', resultadoDocente);
     
     if (!resultadoDocente.success) {
+      console.error('❌ Error en guardarDocente:', resultadoDocente.error);
       throw new Error(resultadoDocente.error);
     }
 
     const docenteId = resultadoDocente.id;
-    console.log('6️⃣ Docente ID:', docenteId);
+    console.log('✅ Docente guardado con ID:', docenteId);
 
-    // 2. Guardar certificaciones
+    // Guardar certificaciones
+    console.log('📄 Paso 4: Procesando certificaciones...');
     const certificacionesPromises = [];
     
     for (const [categoria, certificados] of Object.entries(certificaciones)) {
       for (const [tipo, datos] of Object.entries(certificados)) {
         if (datos.seleccionado && datos.archivo) {
-          console.log(`7️⃣ Procesando certificación: ${categoria} - ${tipo}`);
+          console.log(`   - Guardando: ${categoria} - ${tipo}`);
           const certificacionInfo = {
             nombre: getNombreCertificado(categoria, tipo),
             categoria: categoria,
@@ -294,21 +314,31 @@ const handleSubmit = async (e) => {
       }
     }
 
-    console.log(`8️⃣ Esperando ${certificacionesPromises.length} certificaciones...`);
-    await Promise.all(certificacionesPromises);
-    console.log('9️⃣ Todas las certificaciones guardadas');
+    if (certificacionesPromises.length > 0) {
+      console.log(`⏳ Esperando ${certificacionesPromises.length} certificaciones...`);
+      await Promise.all(certificacionesPromises);
+      console.log('✅ Todas las certificaciones guardadas');
+    } else {
+      console.log('ℹ️ No hay certificaciones para guardar');
+    }
 
+    console.log('=========================================');
+    console.log('🎉 REGISTRO COMPLETADO EXITOSAMENTE');
+    console.log('=========================================');
+    
     alert('✅ ¡Registro exitoso! Los datos se han guardado correctamente.')
     resetFormulario()
     
   } catch (error) {
-    console.error('❌❌❌ ERROR DETALLADO:', error);
+    console.log('=========================================');
+    console.error('❌ ERROR EN EL REGISTRO');
     console.error('❌ Mensaje:', error.message);
-    console.error('❌ Stack:', error.stack);
+    console.error('❌ Error completo:', error);
+    console.log('=========================================');
     alert('❌ Error al guardar los datos: ' + error.message)
   } finally {
     setLoading(false)
-    console.log('🔟 Proceso finalizado');
+    console.log('🏁 Proceso finalizado');
   }
 }
 

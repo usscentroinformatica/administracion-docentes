@@ -12,22 +12,33 @@ const archivoToBase64 = (archivo) => {
   });
 };
 
-// Guardar docente en Firestore
+// src/firebase/services.js
 export const guardarDocente = async (datosDocente) => {
   try {
+    console.log('🔥 [services] Iniciando guardarDocente');
+    console.log('🔥 [services] Datos recibidos:', { 
+      nombres: datosDocente.nombres, 
+      dni: datosDocente.dni,
+      tieneFoto: !!datosDocente.fotoBase64 
+    });
+    
     const docenteData = {
       ...datosDocente,
       fechaRegistro: serverTimestamp(),
       fechaNacimiento: new Date(datosDocente.fechaNacimiento)
     };
 
+    console.log('🔥 [services] Intentando escribir en Firestore...');
     const docRef = await addDoc(collection(db, 'docentes'), docenteData);
-    console.log('Docente guardado con ID:', docRef.id);
+    console.log('🔥 [services] Escritura exitosa, ID:', docRef.id);
     
     return { success: true, id: docRef.id };
   } catch (error) {
-    console.error('Error al guardar docente:', error);
-    return { success: false, error: error.message };
+    console.error('🔥 [services] ERROR DETALLADO:');
+    console.error('🔥 [services] - Código:', error.code);
+    console.error('🔥 [services] - Mensaje:', error.message);
+    console.error('🔥 [services] - Stack:', error.stack);
+    return { success: false, error: error.message, code: error.code };
   }
 };
 
