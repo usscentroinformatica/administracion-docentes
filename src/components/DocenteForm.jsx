@@ -785,7 +785,7 @@ const DocenteForm = () => {
                   onChange={() => handleCertificacionToggle('office365', 'wordAsociado2')}
                 />
                 <label htmlFor="word_365_2" className="certificacion-label">
-                  Microsoft Word Asociado - 365
+                  Microsoft Word Expert - 365
                 </label>
               </div>
               {certificaciones.office365.wordAsociado2.seleccionado && (
@@ -811,7 +811,7 @@ const DocenteForm = () => {
                   onChange={() => handleCertificacionToggle('office365', 'excelAsociado2')}
                 />
                 <label htmlFor="excel_365_2" className="certificacion-label">
-                  Microsoft Excel Asociado - 365
+                  Microsoft Excel Expert - 365
                 </label>
               </div>
               {certificaciones.office365.excelAsociado2.seleccionado && (
