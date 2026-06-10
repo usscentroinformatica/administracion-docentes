@@ -240,61 +240,77 @@ const DocenteForm = () => {
   }
 
   // Manejar envío del formulario
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  // Manejar envío del formulario
+const handleSubmit = async (e) => {
+  e.preventDefault()
+  
+  console.log('1️⃣ Iniciando proceso de envío...');
+  
+  if (!validarFormulario()) {
+    console.log('2️⃣ Validación fallida');
+    return;
+  }
+
+  console.log('2️⃣ Validación exitosa');
+  setLoading(true)
+
+  try {
+    console.log('3️⃣ Convirtiendo foto a Base64...');
+    // 1. Guardar datos del docente (incluyendo foto en Base64)
+    const docenteData = {
+      ...formData,
+      fotoBase64: await archivoToBase64(fotoDocente.archivo),
+      fotoNombre: fotoDocente.nombreArchivo
+    }
     
-    if (!validarFormulario()) {
-      return
+    console.log('4️⃣ Enviando a guardarDocente...');
+    const resultadoDocente = await guardarDocente(docenteData);
+    
+    console.log('5️⃣ Resultado guardarDocente:', resultadoDocente);
+    
+    if (!resultadoDocente.success) {
+      throw new Error(resultadoDocente.error);
     }
 
-    setLoading(true)
+    const docenteId = resultadoDocente.id;
+    console.log('6️⃣ Docente ID:', docenteId);
 
-    try {
-      // 1. Guardar datos del docente (incluyendo foto en Base64)
-      const docenteData = {
-        ...formData,
-        fotoBase64: await archivoToBase64(fotoDocente.archivo),
-        fotoNombre: fotoDocente.nombreArchivo
-      }
-      
-      const resultadoDocente = await guardarDocente(docenteData);
-      
-      if (!resultadoDocente.success) {
-        throw new Error(resultadoDocente.error);
-      }
-
-      const docenteId = resultadoDocente.id;
-
-      // 2. Guardar certificaciones
-      const certificacionesPromises = [];
-      
-      for (const [categoria, certificados] of Object.entries(certificaciones)) {
-        for (const [tipo, datos] of Object.entries(certificados)) {
-          if (datos.seleccionado && datos.archivo) {
-            const certificacionInfo = {
-              nombre: getNombreCertificado(categoria, tipo),
-              categoria: categoria,
-              tipo: tipo
-            };
-            
-            const promesa = guardarCertificacion(docenteId, certificacionInfo, datos.archivo);
-            certificacionesPromises.push(promesa);
-          }
+    // 2. Guardar certificaciones
+    const certificacionesPromises = [];
+    
+    for (const [categoria, certificados] of Object.entries(certificaciones)) {
+      for (const [tipo, datos] of Object.entries(certificados)) {
+        if (datos.seleccionado && datos.archivo) {
+          console.log(`7️⃣ Procesando certificación: ${categoria} - ${tipo}`);
+          const certificacionInfo = {
+            nombre: getNombreCertificado(categoria, tipo),
+            categoria: categoria,
+            tipo: tipo
+          };
+          
+          const promesa = guardarCertificacion(docenteId, certificacionInfo, datos.archivo);
+          certificacionesPromises.push(promesa);
         }
       }
-
-      await Promise.all(certificacionesPromises);
-
-      alert('✅ ¡Registro exitoso! Los datos se han guardado correctamente.')
-      resetFormulario()
-      
-    } catch (error) {
-      console.error('Error al guardar:', error)
-      alert('❌ Error al guardar los datos: ' + error.message)
-    } finally {
-      setLoading(false)
     }
+
+    console.log(`8️⃣ Esperando ${certificacionesPromises.length} certificaciones...`);
+    await Promise.all(certificacionesPromises);
+    console.log('9️⃣ Todas las certificaciones guardadas');
+
+    alert('✅ ¡Registro exitoso! Los datos se han guardado correctamente.')
+    resetFormulario()
+    
+  } catch (error) {
+    console.error('❌❌❌ ERROR DETALLADO:', error);
+    console.error('❌ Mensaje:', error.message);
+    console.error('❌ Stack:', error.stack);
+    alert('❌ Error al guardar los datos: ' + error.message)
+  } finally {
+    setLoading(false)
+    console.log('🔟 Proceso finalizado');
   }
+}
 
   // Función para convertir archivo a Base64
   const archivoToBase64 = (archivo) => {
