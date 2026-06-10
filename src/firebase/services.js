@@ -1,6 +1,6 @@
 // src/firebase/services.js
 import { db } from './config';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { ref, push, set, get, child } from 'firebase/database';
 
 // Función para convertir archivo a Base64
 const archivoToBase64 = (archivo) => {
@@ -12,66 +12,67 @@ const archivoToBase64 = (archivo) => {
   });
 };
 
-// src/firebase/services.js
+// Guardar docente en Realtime Database
 export const guardarDocente = async (datosDocente) => {
   try {
-    console.log('🔥 [services] Iniciando guardarDocente');
-    console.log('🔥 [services] Datos recibidos:', { 
-      nombres: datosDocente.nombres, 
-      dni: datosDocente.dni,
-      tieneFoto: !!datosDocente.fotoBase64 
-    });
+    console.log('🔥 Guardando en Realtime Database...');
     
+    // Crear un ID único para el docente
+    const docentesRef = ref(db, 'docentes');
+    const nuevoDocenteRef = push(docentesRef);
+    const docenteId = nuevoDocenteRef.key;
+    
+    // Preparar datos
     const docenteData = {
       ...datosDocente,
-      fechaRegistro: serverTimestamp(),
-      fechaNacimiento: new Date(datosDocente.fechaNacimiento)
+      docenteId: docenteId,
+      fechaRegistro: new Date().toISOString(),
+      fechaNacimiento: datosDocente.fechaNacimiento
     };
-
-    console.log('🔥 [services] Intentando escribir en Firestore...');
-    const docRef = await addDoc(collection(db, 'docentes'), docenteData);
-    console.log('🔥 [services] Escritura exitosa, ID:', docRef.id);
     
-    return { success: true, id: docRef.id };
+    // Guardar
+    await set(nuevoDocenteRef, docenteData);
+    
+    console.log('✅ Docente guardado con ID:', docenteId);
+    return { success: true, id: docenteId };
+    
   } catch (error) {
-    console.error('🔥 [services] ERROR DETALLADO:');
-    console.error('🔥 [services] - Código:', error.code);
-    console.error('🔥 [services] - Mensaje:', error.message);
-    console.error('🔥 [services] - Stack:', error.stack);
-    return { success: false, error: error.message, code: error.code };
+    console.error('❌ Error:', error);
+    return { success: false, error: error.message };
   }
 };
 
-// Guardar certificación con archivo en Base64 en Firestore
+// Guardar certificación en Realtime Database
 export const guardarCertificacion = async (docenteId, certificacion, archivo) => {
   try {
-    let archivoBase64 = null;
-    let archivoTipo = null;
-    let archivoNombre = null;
+    console.log('🔥 Guardando certificación para:', docenteId);
     
-    // Convertir archivo a Base64 si existe
+    let archivoBase64 = null;
     if (archivo) {
       archivoBase64 = await archivoToBase64(archivo);
-      archivoTipo = archivo.type;
-      archivoNombre = archivo.name;
     }
     
+    // Crear referencia en certificaciones/[docenteId]/
+    const certificacionesRef = ref(db, `certificaciones/${docenteId}`);
+    const nuevaCertRef = push(certificacionesRef);
+    
     const certificacionData = {
+      certificacionId: nuevaCertRef.key,
       docenteId: docenteId,
       nombre: certificacion.nombre,
       categoria: certificacion.categoria,
       tipo: certificacion.tipo,
-      archivoBase64: archivoBase64,  // Archivo en Base64
-      archivoTipo: archivoTipo,       // Tipo de archivo (PDF, JPG, etc)
-      archivoNombre: archivoNombre,   // Nombre original del archivo
-      fechaSubida: serverTimestamp()
+      archivoBase64: archivoBase64,
+      archivoNombre: archivo?.name || '',
+      fechaSubida: new Date().toISOString()
     };
     
-    const certRef = await addDoc(collection(db, 'certificaciones'), certificacionData);
+    await set(nuevaCertRef, certificacionData);
+    console.log('✅ Certificación guardada');
+    return { success: true };
     
-    return { success: true, id: certRef.id };
   } catch (error) {
-    console.error('Error al guardar certificación:', error);
+    console.error('❌ Error en certificación:', error);
     return { success: false, error: error.message };
   }
 };
