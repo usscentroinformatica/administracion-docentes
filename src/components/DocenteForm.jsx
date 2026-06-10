@@ -833,7 +833,7 @@ const DocenteForm = () => {
         {/* Botones de acción */}
         <div className="form-actions">
           <button type="submit" className="btn-submit" disabled={loading}>
-            {loading ? '📥 Guardando...' : '✅ Registrar Docente'}
+            {loading ? '📥 Guardando...' : '✅ INSCRIBIR DOCENTE'}
           </button>
           <button type="button" onClick={resetFormulario} className="btn-reset" disabled={loading}>
             🗑️ Limpiar Formulario
