@@ -1,0 +1,315 @@
+/* src/components/ListaDocentes.css */
+
+/* Botón flotante */
+.btn-flotante {
+  position: fixed;
+  right: 30px;
+  bottom: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #5a2290 0%, #7b2cb8 100%);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 28px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-flotante:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(90, 34, 144, 0.4);
+}
+
+/* Panel lateral */
+.panel-lateral {
+  position: fixed;
+  top: 0;
+  right: -400px;
+  width: 400px;
+  height: 100vh;
+  background: white;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  transition: right 0.3s ease;
+  z-index: 1001;
+  overflow-y: auto;
+}
+
+.panel-lateral.abierto {
+  right: 0;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #5a2290 0%, #7b2cb8 100%);
+  color: white;
+  position: sticky;
+  top: 0;
+}
+
+.panel-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.btn-cerrar-panel {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.btn-ver-docentes {
+  width: calc(100% - 40px);
+  margin: 20px;
+  padding: 15px;
+  background: linear-gradient(135deg, #11acd3 0%, #0d8bb3 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.btn-ver-docentes:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(17, 172, 211, 0.3);
+}
+
+/* Overlay del modal */
+.lista-docentes-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lista-docentes-container {
+  width: 90%;
+  max-width: 1200px;
+  height: 85vh;
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.lista-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #5a2290 0%, #7b2cb8 100%);
+  color: white;
+}
+
+.lista-header h3 {
+  margin: 0;
+}
+
+.btn-cerrar {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.lista-contenido {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.lista-docentes {
+  width: 35%;
+  border-right: 1px solid #e0e0e0;
+  overflow-y: auto;
+  padding: 15px;
+}
+
+.lista-docentes h4 {
+  margin-bottom: 15px;
+  color: #5a2290;
+}
+
+.docente-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: #f8f9fa;
+}
+
+.docente-item:hover {
+  background: #e9ecef;
+  transform: translateX(5px);
+}
+
+.docente-item.active {
+  background: linear-gradient(135deg, #5a2290 0%, #7b2cb8 100%);
+  color: white;
+}
+
+.docente-item-foto {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.docente-item-foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.foto-placeholder-mini {
+  font-size: 24px;
+}
+
+.docente-item-info {
+  flex: 1;
+}
+
+.docente-item-info strong {
+  display: block;
+  font-size: 14px;
+}
+
+.docente-item-info small {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.docente-detalle {
+  width: 65%;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.detalle-foto {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.detalle-imagen {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #5a2290;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.detalle-sin-foto {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+}
+
+.detalle-info p {
+  margin: 10px 0;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.certificaciones-check {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.cert-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.check-icon {
+  font-size: 18px;
+}
+
+.cert-nombre {
+  font-size: 13px;
+}
+
+.cert-nombre.completado {
+  color: #27ae60;
+}
+
+.cert-nombre.pendiente {
+  color: #e74c3c;
+}
+
+.loading-spinner {
+  text-align: center;
+  padding: 40px;
+  color: #5a2290;
+}
+
+.sin-docentes {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+}
+
+@media (max-width: 768px) {
+  .lista-contenido {
+    flex-direction: column;
+  }
+  
+  .lista-docentes {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+    max-height: 40%;
+  }
+  
+  .docente-detalle {
+    width: 100%;
+    max-height: 60%;
+  }
+  
+  .panel-lateral {
+    width: 100%;
+    right: -100%;
+  }
+}
