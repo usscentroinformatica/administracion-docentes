@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase/config';
 import { ref, get, child, update } from 'firebase/database';
-import { guardarCertificacion } from '../firebase/services';
 import './ListaDocentes.css';
 
 const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
@@ -18,15 +17,13 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
   const [mensaje, setMensaje] = useState('');
   const [cargandoActualizacion, setCargandoActualizacion] = useState(false);
 
-  // URL de tu hoja de cálculo de Google Sheets
+  // URL de Google Sheets
   const GOOGLE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1GOJZQDx1XSpudu_80gok1Nuq9YzMvKkLR9fy-jYsyt0/edit';
 
-  // Función para abrir Google Sheets
   const abrirGoogleSheets = () => {
     window.open(GOOGLE_SHEETS_URL, '_blank');
   };
 
-  // Cargar docentes según el modo
   useEffect(() => {
     if (modo === 'docente' && docenteId) {
       cargarDocenteUnico(docenteId);
@@ -35,7 +32,6 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     }
   }, [modo, docenteId]);
 
-  // Cargar un solo docente (modo docente)
   const cargarDocenteUnico = async (id) => {
     setLoading(true);
     try {
@@ -49,13 +45,12 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
         await cargarCertificacionesDocente(id);
       }
     } catch (error) {
-      console.error('Error al cargar docente:', error);
+      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Cargar todos los docentes (modo admin)
   const cargarDocentes = async () => {
     setLoading(true);
     try {
@@ -84,7 +79,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
         setDocentes([]);
       }
     } catch (error) {
-      console.error('Error al cargar docentes:', error);
+      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
@@ -113,17 +108,16 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
         setCertificacionesDetalle([]);
       }
     } catch (error) {
-      console.error('Error al cargar certificaciones:', error);
+      console.error('Error:', error);
     }
   };
 
   const handleSelectDocente = async (docente) => {
-    if (modo === 'docente') return; // En modo docente no se puede seleccionar otro
+    if (modo === 'docente') return;
     setSelectedDocente(docente);
     await cargarCertificacionesDocente(docente.id);
   };
 
-  // Función para editar datos personales
   const iniciarEdicion = () => {
     setEditandoDocente({ ...selectedDocente });
     setModoEdicion(true);
@@ -152,7 +146,6 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
         lugarResidencia: editandoDocente.lugarResidencia
       });
       
-      // Actualizar el estado local
       setSelectedDocente(editandoDocente);
       const nuevosDocentes = docentes.map(d => 
         d.id === editandoDocente.id ? editandoDocente : d
@@ -161,10 +154,8 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
       
       setMensaje({ tipo: 'success', texto: '✅ Datos actualizados correctamente' });
       setModoEdicion(false);
-      
       setTimeout(() => setMensaje(''), 3000);
     } catch (error) {
-      console.error('Error:', error);
       setMensaje({ tipo: 'error', texto: '❌ Error al actualizar datos' });
     } finally {
       setCargandoActualizacion(false);
@@ -224,16 +215,10 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
       <div className="lista-docentes-overlay">
         <div className="lista-docentes-container">
           <div className="lista-header">
-            <h3>
-              {modo === 'docente' ? '👨‍🏫 Mi Perfil Docente' : '📋 Docentes Registrados'}
-            </h3>
+            <h3>{modo === 'docente' ? '👨‍🏫 Mi Perfil Docente' : '📋 Docentes Registrados'}</h3>
             <div className="header-buttons">
               {modo === 'admin' && (
-                <button 
-                  className="btn-ver-sheets" 
-                  onClick={abrirGoogleSheets}
-                  title="Ver hoja de cálculo de Google Sheets"
-                >
+                <button className="btn-ver-sheets" onClick={abrirGoogleSheets}>
                   📊 Ver Hoja de Cálculo
                 </button>
               )}
@@ -253,7 +238,6 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
             <div className="sin-docentes">No hay docentes registrados aún</div>
           ) : (
             <div className="lista-contenido">
-              {/* Lista de docentes - solo visible para admin */}
               {modo === 'admin' && (
                 <div className="lista-docentes">
                   <h4>📚 Lista de Docentes <span className="docentes-count">({docentes.length} registrados)</span></h4>
@@ -291,7 +275,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                     {modo === 'docente' && modoEdicion && (
                       <div className="acciones-edicion">
                         <button className="btn-guardar-edicion" onClick={guardarCambios} disabled={cargandoActualizacion}>
-                          {cargandoActualizacion ? 'Guardando...' : '💾 Guardar Cambios'}
+                          {cargandoActualizacion ? 'Guardando...' : '💾 Guardar'}
                         </button>
                         <button className="btn-cancelar-edicion" onClick={cancelarEdicion}>
                           ❌ Cancelar
@@ -300,7 +284,6 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                     )}
                   </div>
                   
-                  {/* Foto del docente */}
                   <div className="detalle-foto">
                     {selectedDocente.fotoBase64 ? (
                       <img src={selectedDocente.fotoBase64} alt={selectedDocente.nombres} className="detalle-imagen" />
@@ -309,7 +292,6 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                     )}
                   </div>
 
-                  {/* Información personal - modo edición o vista */}
                   {modoEdicion ? (
                     <div className="detalle-info-edicion">
                       <div className="campo-edicion">
@@ -330,40 +312,15 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                       </div>
                       <div className="campo-edicion">
                         <label>📧 Correo:</label>
-                        <input 
-                          type="email" 
-                          name="correo"
-                          value={editandoDocente?.correo || ''} 
-                          onChange={handleEditChange}
-                        />
+                        <input type="email" name="correo" value={editandoDocente?.correo || ''} onChange={handleEditChange} />
                       </div>
                       <div className="campo-edicion">
                         <label>📱 Celular:</label>
-                        <input 
-                          type="tel" 
-                          name="celular"
-                          value={editandoDocente?.celular || ''} 
-                          onChange={handleEditChange}
-                          maxLength="9"
-                        />
+                        <input type="tel" name="celular" value={editandoDocente?.celular || ''} onChange={handleEditChange} maxLength="9" />
                       </div>
                       <div className="campo-edicion">
                         <label>📍 Lugar Residencia:</label>
-                        <input 
-                          type="text" 
-                          name="lugarResidencia"
-                          value={editandoDocente?.lugarResidencia || ''} 
-                          onChange={handleEditChange}
-                        />
-                      </div>
-                      <div className="campo-edicion">
-                        <label>🎓 Grado Maestría:</label>
-                        <input type="text" value={
-                          selectedDocente.gradoMaestria === 'ninguno' ? 'Ninguno' : 
-                          selectedDocente.gradoMaestria === 'cursando' ? 'Cursando Maestría' :
-                          selectedDocente.gradoMaestria === 'magister' ? 'Magíster' :
-                          selectedDocente.gradoMaestria === 'doctor' ? 'Doctor' : selectedDocente.gradoMaestria
-                        } disabled />
+                        <input type="text" name="lugarResidencia" value={editandoDocente?.lugarResidencia || ''} onChange={handleEditChange} />
                       </div>
                     </div>
                   ) : (
@@ -384,7 +341,6 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                     </div>
                   )}
 
-                  {/* Certificaciones */}
                   <h4>📜 Certificaciones</h4>
                   <div className="certificaciones-check">
                     {certificadosList.map(cert => {
@@ -400,10 +356,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                             {cert}
                           </span>
                           {tieneCertificado && certificadoData?.archivoBase64 && (
-                            <button 
-                              className="btn-ver-pdf"
-                              onClick={() => verArchivo(certificadoData.archivoBase64, cert)}
-                            >
+                            <button className="btn-ver-pdf" onClick={() => verArchivo(certificadoData.archivoBase64, cert)}>
                               📄 Ver Certificado
                             </button>
                           )}
