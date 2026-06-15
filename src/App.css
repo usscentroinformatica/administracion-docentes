@@ -1,4 +1,4 @@
-/* src/App.css - Actualizado */
+/* src/App.css - Versión COMPLETA y ACTUALIZADA */
 .app {
   min-height: 100vh;
   background: #f5f5f5;
@@ -57,9 +57,69 @@
   padding: 20px;
   flex: 1;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
 }
+
+/* ============================================
+   NUEVOS ESTILOS - Selector de acceso
+   ============================================ */
+
+/* Selector de tipo de acceso (Admin / Docente) */
+.selector-acceso {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+  background: #f0f0f0;
+  padding: 5px;
+  border-radius: 12px;
+  width: 100%;
+}
+
+.selector-btn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: all 0.3s;
+  color: #666;
+}
+
+.selector-btn.active {
+  background: linear-gradient(135deg, #5a2290 0%, #7b2cb8 100%);
+  color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.selector-btn:hover:not(.active) {
+  background: #e0e0e0;
+}
+
+/* Panel de acceso docente y admin */
+.acceso-admin,
+.acceso-docente {
+  animation: fadeIn 0.3s ease;
+  width: 100%;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   ESTILOS EXISTENTES (mantener)
+   ============================================ */
 
 /* Sección de contraseña */
 .password-section {
@@ -96,6 +156,11 @@
   box-shadow: 0 0 0 3px rgba(90, 34, 144, 0.1);
 }
 
+.password-input-panel:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
 .error-password {
   color: #dc3545;
   font-size: 12px;
@@ -117,9 +182,14 @@
   margin-bottom: 12px;
 }
 
-.btn-verificar:hover {
+.btn-verificar:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(17, 172, 211, 0.3);
+}
+
+.btn-verificar:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .password-hint {
@@ -175,126 +245,9 @@
   .password-section {
     padding: 20px;
   }
-}
-
-
-/* Selector de tipo de acceso (Admin / Docente) */
-.selector-acceso {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 25px;
-  background: #f0f0f0;
-  padding: 5px;
-  border-radius: 12px;
-}
-
-.selector-btn {
-  flex: 1;
-  padding: 12px;
-  border: none;
-  background: transparent;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: bold;
-  transition: all 0.3s;
-  color: #666;
-}
-
-.selector-btn.active {
-  background: linear-gradient(135deg, #5a2290 0%, #7b2cb8 100%);
-  color: white;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-.selector-btn:hover:not(.active) {
-  background: #e0e0e0;
-}
-
-/* Panel de acceso docente y admin */
-.acceso-admin,
-.acceso-docente {
-  animation: fadeIn 0.3s ease;
-  width: 100%;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Mejoras para los inputs del panel */
-.password-input-panel {
-  width: 100%;
-  padding: 12px;
-  border: 2px solid #e0e0e0;
-  border-radius: 10px;
-  font-size: 14px;
-  transition: all 0.3s;
-  box-sizing: border-box;
-}
-
-.password-input-panel:focus {
-  border-color: #5a2290;
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(90, 34, 144, 0.1);
-}
-
-.password-input-panel:disabled {
-  background: #f5f5f5;
-  cursor: not-allowed;
-}
-
-/* Botón verificar mejorado */
-.btn-verificar {
-  width: 100%;
-  margin-top: 20px;
-  padding: 12px;
-  background: linear-gradient(135deg, #11acd3 0%, #0d8bb3 100%);
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.btn-verificar:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(17, 172, 211, 0.3);
-}
-
-.btn-verificar:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-/* Contenedor del panel contenido */
-.panel-contenido {
-  padding: 20px;
-  flex: 1;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-}
-
-/* Ajustes responsivos */
-@media (max-width: 768px) {
+  
   .selector-btn {
     padding: 10px;
     font-size: 12px;
   }
-  
-  .acceso-admin,
-  .acceso-docente {
-    margin-top: 10px;
-  }
 }
-
