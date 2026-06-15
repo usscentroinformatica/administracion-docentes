@@ -377,3 +377,146 @@
   background: rgba(255,255,255,0.3);
   transform: rotate(90deg);
 }
+
+/* Agrega al final de tu ListaDocentes.css */
+
+/* Header con botones */
+.detalle-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.btn-editar-perfil {
+  background: #ff9800;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.btn-editar-perfil:hover {
+  background: #f57c00;
+  transform: translateY(-2px);
+}
+
+.acciones-edicion {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-guardar-edicion {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.btn-guardar-edicion:hover:not(:disabled) {
+  background: #45a049;
+  transform: translateY(-2px);
+}
+
+.btn-guardar-edicion:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-cancelar-edicion {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.btn-cancelar-edicion:hover {
+  background: #d32f2f;
+  transform: translateY(-2px);
+}
+
+.detalle-info-edicion {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.campo-edicion {
+  margin-bottom: 15px;
+}
+
+.campo-edicion label {
+  display: block;
+  font-weight: bold;
+  color: #5a2290;
+  margin-bottom: 5px;
+  font-size: 13px;
+}
+
+.campo-edicion input {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.campo-edicion input:focus {
+  border-color: #5a2290;
+  outline: none;
+}
+
+.campo-edicion input:disabled {
+  background: #e9ecef;
+  color: #6c757d;
+}
+
+.mensaje-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  color: white;
+  font-weight: bold;
+  z-index: 2000;
+  animation: slideIn 0.3s ease;
+}
+
+.mensaje-toast.success {
+  background: #4CAF50;
+}
+
+.mensaje-toast.error {
+  background: #f44336;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+
+
+
