@@ -11,13 +11,11 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
   const [certificacionesMap, setCertificacionesMap] = useState({});
   const [certificacionesDetalle, setCertificacionesDetalle] = useState([]);
   
-  // Estados para edición (solo para docente)
   const [modoEdicion, setModoEdicion] = useState(false);
   const [editandoDocente, setEditandoDocente] = useState(null);
   const [mensaje, setMensaje] = useState('');
   const [cargandoActualizacion, setCargandoActualizacion] = useState(false);
 
-  // URL de Google Sheets
   const GOOGLE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1GOJZQDx1XSpudu_80gok1Nuq9YzMvKkLR9fy-jYsyt0/edit';
 
   const abrirGoogleSheets = () => {
@@ -152,11 +150,11 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
       );
       setDocentes(nuevosDocentes);
       
-      setMensaje({ tipo: 'success', texto: '✅ Datos actualizados correctamente' });
+      setMensaje({ tipo: 'success', texto: '✅ Datos actualizados' });
       setModoEdicion(false);
       setTimeout(() => setMensaje(''), 3000);
     } catch (error) {
-      setMensaje({ tipo: 'error', texto: '❌ Error al actualizar datos' });
+      setMensaje({ tipo: 'error', texto: '❌ Error al actualizar' });
     } finally {
       setCargandoActualizacion(false);
     }
@@ -215,11 +213,11 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
       <div className="lista-docentes-overlay">
         <div className="lista-docentes-container">
           <div className="lista-header">
-            <h3>{modo === 'docente' ? '👨‍🏫 Mi Perfil Docente' : '📋 Docentes Registrados'}</h3>
+            <h3>{modo === 'docente' ? '👨‍🏫 Mi Perfil' : '📋 Docentes Registrados'}</h3>
             <div className="header-buttons">
               {modo === 'admin' && (
                 <button className="btn-ver-sheets" onClick={abrirGoogleSheets}>
-                  📊 Ver Hoja de Cálculo
+                  📊 Ver Hoja
                 </button>
               )}
               <button className="btn-cerrar" onClick={onClose}>✕</button>
@@ -235,12 +233,12 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
           {loading ? (
             <div className="loading-spinner">Cargando...</div>
           ) : docentes.length === 0 ? (
-            <div className="sin-docentes">No hay docentes registrados aún</div>
+            <div className="sin-docentes">No hay docentes registrados</div>
           ) : (
             <div className="lista-contenido">
               {modo === 'admin' && (
                 <div className="lista-docentes">
-                  <h4>📚 Lista de Docentes <span className="docentes-count">({docentes.length} registrados)</span></h4>
+                  <h4>📚 Lista <span className="docentes-count">({docentes.length})</span></h4>
                   {docentes.map(docente => (
                     <div 
                       key={docente.id} 
@@ -266,16 +264,16 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
               {selectedDocente && (
                 <div className="docente-detalle">
                   <div className="detalle-header">
-                    <h4>📄 Detalle del Docente</h4>
+                    <h4>📄 Detalle</h4>
                     {modo === 'docente' && !modoEdicion && (
                       <button className="btn-editar-perfil" onClick={iniciarEdicion}>
-                        ✏️ Editar Mi Perfil
+                        ✏️ Editar
                       </button>
                     )}
                     {modo === 'docente' && modoEdicion && (
                       <div className="acciones-edicion">
                         <button className="btn-guardar-edicion" onClick={guardarCambios} disabled={cargandoActualizacion}>
-                          {cargandoActualizacion ? 'Guardando...' : '💾 Guardar'}
+                          {cargandoActualizacion ? '...' : '💾 Guardar'}
                         </button>
                         <button className="btn-cancelar-edicion" onClick={cancelarEdicion}>
                           ❌ Cancelar
@@ -295,49 +293,38 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                   {modoEdicion ? (
                     <div className="detalle-info-edicion">
                       <div className="campo-edicion">
-                        <label>📛 Apellidos:</label>
+                        <label>Apellidos:</label>
                         <input type="text" value={editandoDocente?.apellidos || ''} disabled />
                       </div>
                       <div className="campo-edicion">
-                        <label>👤 Nombres:</label>
+                        <label>Nombres:</label>
                         <input type="text" value={editandoDocente?.nombres || ''} disabled />
                       </div>
                       <div className="campo-edicion">
-                        <label>📅 Fecha Nacimiento:</label>
-                        <input type="text" value={editandoDocente?.fechaNacimiento || ''} disabled />
-                      </div>
-                      <div className="campo-edicion">
-                        <label>🆔 DNI:</label>
+                        <label>DNI:</label>
                         <input type="text" value={editandoDocente?.dni || ''} disabled />
                       </div>
                       <div className="campo-edicion">
-                        <label>📧 Correo:</label>
+                        <label>Correo:</label>
                         <input type="email" name="correo" value={editandoDocente?.correo || ''} onChange={handleEditChange} />
                       </div>
                       <div className="campo-edicion">
-                        <label>📱 Celular:</label>
+                        <label>Celular:</label>
                         <input type="tel" name="celular" value={editandoDocente?.celular || ''} onChange={handleEditChange} maxLength="9" />
                       </div>
                       <div className="campo-edicion">
-                        <label>📍 Lugar Residencia:</label>
+                        <label>Residencia:</label>
                         <input type="text" name="lugarResidencia" value={editandoDocente?.lugarResidencia || ''} onChange={handleEditChange} />
                       </div>
                     </div>
                   ) : (
                     <div className="detalle-info">
-                      <p><strong>👤 Nombres:</strong> {selectedDocente.nombres}</p>
-                      <p><strong>📛 Apellidos:</strong> {selectedDocente.apellidos}</p>
-                      <p><strong>📅 Fecha Nacimiento:</strong> {selectedDocente.fechaNacimiento}</p>
-                      <p><strong>🆔 DNI:</strong> {selectedDocente.dni}</p>
-                      <p><strong>📧 Correo:</strong> {selectedDocente.correo}</p>
-                      <p><strong>📱 Celular:</strong> {selectedDocente.celular}</p>
-                      <p><strong>📍 Lugar Residencia:</strong> {selectedDocente.lugarResidencia}</p>
-                      <p><strong>🎓 Grado Maestría:</strong> {
-                        selectedDocente.gradoMaestria === 'ninguno' ? 'Ninguno' : 
-                        selectedDocente.gradoMaestria === 'cursando' ? 'Cursando Maestría' :
-                        selectedDocente.gradoMaestria === 'magister' ? 'Magíster' :
-                        selectedDocente.gradoMaestria === 'doctor' ? 'Doctor' : selectedDocente.gradoMaestria
-                      }</p>
+                      <p><strong>Nombres:</strong> {selectedDocente.nombres}</p>
+                      <p><strong>Apellidos:</strong> {selectedDocente.apellidos}</p>
+                      <p><strong>DNI:</strong> {selectedDocente.dni}</p>
+                      <p><strong>Correo:</strong> {selectedDocente.correo}</p>
+                      <p><strong>Celular:</strong> {selectedDocente.celular}</p>
+                      <p><strong>Residencia:</strong> {selectedDocente.lugarResidencia}</p>
                     </div>
                   )}
 
@@ -349,15 +336,11 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                       
                       return (
                         <div key={cert} className="cert-item">
-                          <span className={`check-icon ${tieneCertificado ? 'checked' : 'unchecked'}`}>
-                            {tieneCertificado ? '✅' : '❌'}
-                          </span>
-                          <span className={`cert-nombre ${tieneCertificado ? 'completado' : 'pendiente'}`}>
-                            {cert}
-                          </span>
+                          <span>{tieneCertificado ? '✅' : '❌'}</span>
+                          <span>{cert}</span>
                           {tieneCertificado && certificadoData?.archivoBase64 && (
-                            <button className="btn-ver-pdf" onClick={() => verArchivo(certificadoData.archivoBase64, cert)}>
-                              📄 Ver Certificado
+                            <button onClick={() => verArchivo(certificadoData.archivoBase64, cert)}>
+                              📄 Ver
                             </button>
                           )}
                         </div>
