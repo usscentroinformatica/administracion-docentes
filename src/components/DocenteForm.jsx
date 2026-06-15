@@ -26,7 +26,7 @@ const DocenteForm = () => {
   // Estado para loading
   const [loading, setLoading] = useState(false)
 
-  // Estado para las certificaciones
+  // Estado para las certificaciones (ACTUALIZADO CON LAS 10 CERTIFICACIONES)
   const [certificaciones, setCertificaciones] = useState({
     office2019: {
       wordAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
@@ -39,10 +39,13 @@ const DocenteForm = () => {
       wordAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
       excelAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
       powerpointAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
-      wordAsociado2: { seleccionado: false, archivo: null, nombreArchivo: '' },
-      excelAsociado2: { seleccionado: false, archivo: null, nombreArchivo: '' }
+      wordExpert: { seleccionado: false, archivo: null, nombreArchivo: '' },
+      excelExpert: { seleccionado: false, archivo: null, nombreArchivo: '' }
     }
   })
+
+  // ⚠️ IMPORTANTE: Reemplaza esta URL con la que obtengas de Google Apps Script
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/TU_ID_AQUI/exec';
 
   // Opciones para el select de grado de maestría
   const gradosMaestria = [
@@ -99,19 +102,16 @@ const DocenteForm = () => {
     const archivo = files[0]
     
     if (archivo) {
-      // Validar que sea imagen
       if (!archivo.type.startsWith('image/')) {
         alert('Por favor seleccione una imagen válida (JPG, PNG, JPEG)')
         return
       }
       
-      // Validar tamaño máximo (2MB)
       if (archivo.size > 2 * 1024 * 1024) {
         alert('La imagen no debe superar los 2MB')
         return
       }
       
-      // Crear preview
       const preview = URL.createObjectURL(archivo)
       
       setFotoDocente({
@@ -154,6 +154,62 @@ const DocenteForm = () => {
     }))
   }
 
+  // Función para obtener el estado de todas las certificaciones (ACTUALIZADA)
+  const obtenerEstadoCertificaciones = () => {
+    return {
+      // Office 2019
+      word2019Asociado: certificaciones.office2019.wordAsociado.seleccionado ? '✅' : '❌',
+      excel2019Asociado: certificaciones.office2019.excelAsociado.seleccionado ? '✅' : '❌',
+      ppt2019Asociado: certificaciones.office2019.powerpointAsociado.seleccionado ? '✅' : '❌',
+      word2019Expert: certificaciones.office2019.wordExpert.seleccionado ? '✅' : '❌',
+      excel2019Expert: certificaciones.office2019.excelExpert.seleccionado ? '✅' : '❌',
+      
+      // Office 365
+      word365Asociado: certificaciones.office365.wordAsociado.seleccionado ? '✅' : '❌',
+      excel365Asociado: certificaciones.office365.excelAsociado.seleccionado ? '✅' : '❌',
+      ppt365Asociado: certificaciones.office365.powerpointAsociado.seleccionado ? '✅' : '❌',
+      word365Expert: certificaciones.office365.wordExpert.seleccionado ? '✅' : '❌',
+      excel365Expert: certificaciones.office365.excelExpert.seleccionado ? '✅' : '❌'
+    };
+  };
+
+  // Función para guardar en Google Sheets
+  const guardarEnGoogleSheets = async (docenteData) => {
+    const estadoCertificaciones = obtenerEstadoCertificaciones();
+    
+    const datosParaGoogle = {
+      apellidos: docenteData.apellidos,
+      nombres: docenteData.nombres,
+      dni: docenteData.dni,
+      fechaNacimiento: docenteData.fechaNacimiento,
+      genero: docenteData.genero,
+      correo: docenteData.correo,
+      celular: docenteData.celular,
+      lugarResidencia: docenteData.lugarResidencia,
+      gradoMaestria: docenteData.gradoMaestria,
+      certificaciones: estadoCertificaciones
+    };
+    
+    try {
+      console.log('📤 Enviando a Google Sheets:', datosParaGoogle);
+      
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(datosParaGoogle)
+      });
+      
+      console.log('✅ Datos enviados exitosamente a Google Sheets');
+      return true;
+    } catch (error) {
+      console.error('❌ Error al enviar a Google Sheets:', error);
+      return false;
+    }
+  };
+
   // Validar el formulario
   const validarFormulario = () => {
     const camposObligatorios = ['apellidos', 'nombres', 'fechaNacimiento', 'dni', 'correo', 'celular', 'lugarResidencia', 'genero', 'gradoMaestria']
@@ -165,7 +221,6 @@ const DocenteForm = () => {
       }
     }
 
-    // Validar que tenga foto
     if (!fotoDocente.archivo) {
       alert('Por favor agregue una foto formal del docente')
       return false
@@ -197,14 +252,6 @@ const DocenteForm = () => {
       return false
     }
 
-    const camposTexto = ['apellidos', 'nombres', 'lugarResidencia']
-    for (let campo of camposTexto) {
-      if (formData[campo] && formData[campo] !== formData[campo].toUpperCase()) {
-        alert(`El campo ${campo} debe estar en mayúsculas`)
-        return false
-      }
-    }
-
     for (const [categoria, certificados] of Object.entries(certificaciones)) {
       for (const [tipo, datos] of Object.entries(certificados)) {
         if (datos.seleccionado && !datos.archivo) {
@@ -218,7 +265,7 @@ const DocenteForm = () => {
     return true
   }
 
-  // Obtener nombre legible de la certificación
+  // Obtener nombre legible de la certificación (ACTUALIZADO)
   const getNombreCertificado = (categoria, tipo) => {
     const nombres = {
       office2019: {
@@ -232,115 +279,12 @@ const DocenteForm = () => {
         wordAsociado: 'Microsoft Word Asociado - 365',
         excelAsociado: 'Microsoft Excel Asociado - 365',
         powerpointAsociado: 'Microsoft PowerPoint Asociado - 365',
-        wordAsociado2: 'Microsoft Word Asociado - 365',
-        excelAsociado2: 'Microsoft Excel Asociado - 365'
+        wordExpert: 'Microsoft Word Expert - 365',
+        excelExpert: 'Microsoft Excel Expert - 365'
       }
     }
     return nombres[categoria]?.[tipo] || ''
   }
-
-  // Manejar envío del formulario
-  // Manejar envío del formulario
-const handleSubmit = async (e) => {
-  e.preventDefault()
-  
-  console.log('=========================================');
-  console.log('🚀 INICIANDO ENVÍO DEL FORMULARIO');
-  console.log('=========================================');
-  
-  // Validar formulario
-  console.log('📋 Paso 1: Validando formulario...');
-  const esValido = validarFormulario();
-  
-  if (!esValido) {
-    console.log('❌ Validación fallida');
-    setLoading(false);
-    return;
-  }
-  
-  console.log('✅ Validación exitosa');
-  setLoading(true)
-
-  try {
-    // Verificar que hay foto
-    if (!fotoDocente.archivo) {
-      throw new Error('No hay foto seleccionada');
-    }
-    
-    console.log('📸 Paso 2: Convirtiendo foto a Base64...');
-    const fotoBase64 = await archivoToBase64(fotoDocente.archivo);
-    console.log('✅ Foto convertida, tamaño:', (fotoBase64.length / 1024).toFixed(2), 'KB');
-    
-    // Preparar datos del docente
-    const docenteData = {
-      ...formData,
-      fotoBase64: fotoBase64,
-      fotoNombre: fotoDocente.nombreArchivo
-    }
-    
-    console.log('👤 Paso 3: Guardando docente en Firebase...');
-    console.log('   - Nombre:', docenteData.nombres);
-    console.log('   - DNI:', docenteData.dni);
-    
-    const resultadoDocente = await guardarDocente(docenteData);
-    
-    console.log('📤 Respuesta de guardarDocente:', resultadoDocente);
-    
-    if (!resultadoDocente.success) {
-      console.error('❌ Error en guardarDocente:', resultadoDocente.error);
-      throw new Error(resultadoDocente.error);
-    }
-
-    const docenteId = resultadoDocente.id;
-    console.log('✅ Docente guardado con ID:', docenteId);
-
-    // Guardar certificaciones
-    console.log('📄 Paso 4: Procesando certificaciones...');
-    const certificacionesPromises = [];
-    
-    for (const [categoria, certificados] of Object.entries(certificaciones)) {
-      for (const [tipo, datos] of Object.entries(certificados)) {
-        if (datos.seleccionado && datos.archivo) {
-          console.log(`   - Guardando: ${categoria} - ${tipo}`);
-          const certificacionInfo = {
-            nombre: getNombreCertificado(categoria, tipo),
-            categoria: categoria,
-            tipo: tipo
-          };
-          
-          const promesa = guardarCertificacion(docenteId, certificacionInfo, datos.archivo);
-          certificacionesPromises.push(promesa);
-        }
-      }
-    }
-
-    if (certificacionesPromises.length > 0) {
-      console.log(`⏳ Esperando ${certificacionesPromises.length} certificaciones...`);
-      await Promise.all(certificacionesPromises);
-      console.log('✅ Todas las certificaciones guardadas');
-    } else {
-      console.log('ℹ️ No hay certificaciones para guardar');
-    }
-
-    console.log('=========================================');
-    console.log('🎉 REGISTRO COMPLETADO EXITOSAMENTE');
-    console.log('=========================================');
-    
-    alert('✅ ¡Registro exitoso! Los datos se han guardado correctamente.')
-    resetFormulario()
-    
-  } catch (error) {
-    console.log('=========================================');
-    console.error('❌ ERROR EN EL REGISTRO');
-    console.error('❌ Mensaje:', error.message);
-    console.error('❌ Error completo:', error);
-    console.log('=========================================');
-    alert('❌ Error al guardar los datos: ' + error.message)
-  } finally {
-    setLoading(false)
-    console.log('🏁 Proceso finalizado');
-  }
-}
 
   // Función para convertir archivo a Base64
   const archivoToBase64 = (archivo) => {
@@ -382,10 +326,104 @@ const handleSubmit = async (e) => {
         wordAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
         excelAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
         powerpointAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
-        wordAsociado2: { seleccionado: false, archivo: null, nombreArchivo: '' },
-        excelAsociado2: { seleccionado: false, archivo: null, nombreArchivo: '' }
+        wordExpert: { seleccionado: false, archivo: null, nombreArchivo: '' },
+        excelExpert: { seleccionado: false, archivo: null, nombreArchivo: '' }
       }
     })
+  }
+
+  // Manejar envío del formulario
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    
+    console.log('=========================================');
+    console.log('🚀 INICIANDO ENVÍO DEL FORMULARIO');
+    console.log('=========================================');
+    
+    const esValido = validarFormulario();
+    
+    if (!esValido) {
+      console.log('❌ Validación fallida');
+      return;
+    }
+    
+    console.log('✅ Validación exitosa');
+    setLoading(true)
+
+    try {
+      if (!fotoDocente.archivo) {
+        throw new Error('No hay foto seleccionada');
+      }
+      
+      console.log('📸 Convirtiendo foto a Base64...');
+      const fotoBase64 = await archivoToBase64(fotoDocente.archivo);
+      console.log('✅ Foto convertida');
+      
+      const docenteData = {
+        ...formData,
+        fotoBase64: fotoBase64,
+        fotoNombre: fotoDocente.nombreArchivo
+      }
+      
+      console.log('👤 Guardando docente en Firebase...');
+      const resultadoDocente = await guardarDocente(docenteData);
+      
+      if (!resultadoDocente.success) {
+        throw new Error(resultadoDocente.error);
+      }
+
+      const docenteId = resultadoDocente.id;
+      console.log('✅ Docente guardado con ID:', docenteId);
+
+      console.log('📄 Procesando certificaciones...');
+      const certificacionesPromises = [];
+      
+      for (const [categoria, certificados] of Object.entries(certificaciones)) {
+        for (const [tipo, datos] of Object.entries(certificados)) {
+          if (datos.seleccionado && datos.archivo) {
+            console.log(`   - Guardando: ${categoria} - ${tipo}`);
+            const certificacionInfo = {
+              nombre: getNombreCertificado(categoria, tipo),
+              categoria: categoria,
+              tipo: tipo
+            };
+            
+            const promesa = guardarCertificacion(docenteId, certificacionInfo, datos.archivo);
+            certificacionesPromises.push(promesa);
+          }
+        }
+      }
+
+      if (certificacionesPromises.length > 0) {
+        console.log(`⏳ Esperando ${certificacionesPromises.length} certificaciones...`);
+        await Promise.all(certificacionesPromises);
+        console.log('✅ Todas las certificaciones guardadas');
+      } else {
+        console.log('ℹ️ No hay certificaciones para guardar');
+      }
+
+      // Guardar en Google Sheets
+      console.log('📊 Guardando en Google Sheets...');
+      await guardarEnGoogleSheets(docenteData);
+      console.log('✅ Datos enviados a Google Sheets');
+
+      console.log('=========================================');
+      console.log('🎉 REGISTRO COMPLETADO EXITOSAMENTE');
+      console.log('=========================================');
+      
+      alert('✅ ¡Registro exitoso! Los datos se han guardado correctamente.')
+      resetFormulario()
+      
+    } catch (error) {
+      console.log('=========================================');
+      console.error('❌ ERROR EN EL REGISTRO');
+      console.error('❌ Mensaje:', error.message);
+      console.log('=========================================');
+      alert('❌ Error al guardar los datos: ' + error.message)
+    } finally {
+      setLoading(false)
+      console.log('🏁 Proceso finalizado');
+    }
   }
 
   const handleKeyUp = (e) => {
@@ -403,50 +441,50 @@ const handleSubmit = async (e) => {
       <form onSubmit={handleSubmit} className="docente-form">
         
         {/* Sección de Foto Profesional */}
-<div className="form-section">
-  <div className="foto-container">
-    <div className="foto-titulo">
-      <h4>📸 SUBIR FOTO DEL DOCENTE</h4>
-      <p>Fotografía formal tipo carnet</p>
-    </div>
-    
-    <div className="foto-preview">
-      {fotoDocente.preview ? (
-        <img src={fotoDocente.preview} alt="Foto del docente" className="foto-vista-previa" />
-      ) : (
-        <div className="foto-placeholder">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
-          <p>Sin foto</p>
+        <div className="form-section">
+          <div className="foto-container">
+            <div className="foto-titulo">
+              <h4>📸 SUBIR FOTO DEL DOCENTE</h4>
+              <p>Fotografía formal tipo carnet</p>
+            </div>
+            
+            <div className="foto-preview">
+              {fotoDocente.preview ? (
+                <img src={fotoDocente.preview} alt="Foto del docente" className="foto-vista-previa" />
+              ) : (
+                <div className="foto-placeholder">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <p>Sin foto</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="foto-botones">
+              <label className="btn-foto">
+                📁 {fotoDocente.preview ? 'Cambiar foto' : 'Subir imagen'}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/jpg"
+                  onChange={handleFotoChange}
+                  style={{ display: 'none' }}
+                />
+              </label>
+              {fotoDocente.preview && (
+                <button type="button" onClick={() => {
+                  setFotoDocente({ archivo: null, nombreArchivo: '', preview: null })
+                }} className="btn-remover-foto">
+                  🗑️ Quitar foto
+                </button>
+              )}
+            </div>
+            
+            <div className="foto-info">
+              <small>Formatos: JPG, PNG | Tamaño máximo: 2MB | Foto formal requerida</small>
+            </div>
+          </div>
         </div>
-      )}
-    </div>
-    
-    <div className="foto-botones">
-      <label className="btn-foto">
-        📁 {fotoDocente.preview ? 'Cambiar foto' : 'Subir imagen'}
-        <input
-          type="file"
-          accept="image/jpeg,image/png,image/jpg"
-          onChange={handleFotoChange}
-          style={{ display: 'none' }}
-        />
-      </label>
-      {fotoDocente.preview && (
-        <button type="button" onClick={() => {
-          setFotoDocente({ archivo: null, nombreArchivo: '', preview: null })
-        }} className="btn-remover-foto">
-          🗑️ Quitar foto
-        </button>
-      )}
-    </div>
-    
-    <div className="foto-info">
-      <small>Formatos: JPG, PNG | Tamaño máximo: 2MB | Foto formal requerida</small>
-    </div>
-  </div>
-</div>
 
         {/* Datos Personales */}
         <div className="form-section">
@@ -597,7 +635,7 @@ const handleSubmit = async (e) => {
         {/* Certificaciones - Microsoft Office 2019 */}
         <div className="form-section">
           <h3>📄 Certificación Microsoft Office - 2019</h3>
-<p className="enlace-certiport">Ingresar a <a href="https://www.certiport.com" target="_blank" rel="noopener noreferrer">www.certiport.com</a></p>
+          <p className="enlace-certiport">Ingresar a <a href="https://www.certiport.com" target="_blank" rel="noopener noreferrer">www.certiport.com</a></p>
           
           <div className="certificaciones-grid">
             {/* Word Asociado 2019 */}
@@ -605,11 +643,11 @@ const handleSubmit = async (e) => {
               <div className="certificacion-header">
                 <input
                   type="checkbox"
-                  id="word_asociado"
+                  id="word_asociado_2019"
                   checked={certificaciones.office2019.wordAsociado.seleccionado}
                   onChange={() => handleCertificacionToggle('office2019', 'wordAsociado')}
                 />
-                <label htmlFor="word_asociado" className="certificacion-label">
+                <label htmlFor="word_asociado_2019" className="certificacion-label">
                   Microsoft Word Asociado - 2019
                 </label>
               </div>
@@ -632,11 +670,11 @@ const handleSubmit = async (e) => {
               <div className="certificacion-header">
                 <input
                   type="checkbox"
-                  id="excel_asociado"
+                  id="excel_asociado_2019"
                   checked={certificaciones.office2019.excelAsociado.seleccionado}
                   onChange={() => handleCertificacionToggle('office2019', 'excelAsociado')}
                 />
-                <label htmlFor="excel_asociado" className="certificacion-label">
+                <label htmlFor="excel_asociado_2019" className="certificacion-label">
                   Microsoft Excel Asociado - 2019
                 </label>
               </div>
@@ -659,11 +697,11 @@ const handleSubmit = async (e) => {
               <div className="certificacion-header">
                 <input
                   type="checkbox"
-                  id="powerpoint_asociado"
+                  id="powerpoint_asociado_2019"
                   checked={certificaciones.office2019.powerpointAsociado.seleccionado}
                   onChange={() => handleCertificacionToggle('office2019', 'powerpointAsociado')}
                 />
-                <label htmlFor="powerpoint_asociado" className="certificacion-label">
+                <label htmlFor="powerpoint_asociado_2019" className="certificacion-label">
                   Microsoft PowerPoint Asociado - 2019
                 </label>
               </div>
@@ -686,11 +724,11 @@ const handleSubmit = async (e) => {
               <div className="certificacion-header">
                 <input
                   type="checkbox"
-                  id="word_expert"
+                  id="word_expert_2019"
                   checked={certificaciones.office2019.wordExpert.seleccionado}
                   onChange={() => handleCertificacionToggle('office2019', 'wordExpert')}
                 />
-                <label htmlFor="word_expert" className="certificacion-label">
+                <label htmlFor="word_expert_2019" className="certificacion-label">
                   Microsoft Word Expert - 2019
                 </label>
               </div>
@@ -713,11 +751,11 @@ const handleSubmit = async (e) => {
               <div className="certificacion-header">
                 <input
                   type="checkbox"
-                  id="excel_expert"
+                  id="excel_expert_2019"
                   checked={certificaciones.office2019.excelExpert.seleccionado}
                   onChange={() => handleCertificacionToggle('office2019', 'excelExpert')}
                 />
-                <label htmlFor="excel_expert" className="certificacion-label">
+                <label htmlFor="excel_expert_2019" className="certificacion-label">
                   Microsoft Excel Expert - 2019
                 </label>
               </div>
@@ -740,18 +778,19 @@ const handleSubmit = async (e) => {
         {/* Certificaciones - Microsoft Office 365 */}
         <div className="form-section">
           <h3>📄 Certificación Microsoft Office - 365</h3>
-<p className="enlace-certiport">Ingresar a <a href="https://www.certiport.com" target="_blank" rel="noopener noreferrer">www.certiport.com</a></p>
+          <p className="enlace-certiport">Ingresar a <a href="https://www.certiport.com" target="_blank" rel="noopener noreferrer">www.certiport.com</a></p>
           
           <div className="certificaciones-grid">
+            {/* Word Asociado 365 */}
             <div className="certificacion-card">
               <div className="certificacion-header">
                 <input
                   type="checkbox"
-                  id="word_365"
+                  id="word_asociado_365"
                   checked={certificaciones.office365.wordAsociado.seleccionado}
                   onChange={() => handleCertificacionToggle('office365', 'wordAsociado')}
                 />
-                <label htmlFor="word_365" className="certificacion-label">
+                <label htmlFor="word_asociado_365" className="certificacion-label">
                   Microsoft Word Asociado - 365
                 </label>
               </div>
@@ -769,15 +808,16 @@ const handleSubmit = async (e) => {
               )}
             </div>
 
+            {/* Excel Asociado 365 */}
             <div className="certificacion-card">
               <div className="certificacion-header">
                 <input
                   type="checkbox"
-                  id="excel_365"
+                  id="excel_asociado_365"
                   checked={certificaciones.office365.excelAsociado.seleccionado}
                   onChange={() => handleCertificacionToggle('office365', 'excelAsociado')}
                 />
-                <label htmlFor="excel_365" className="certificacion-label">
+                <label htmlFor="excel_asociado_365" className="certificacion-label">
                   Microsoft Excel Asociado - 365
                 </label>
               </div>
@@ -795,15 +835,16 @@ const handleSubmit = async (e) => {
               )}
             </div>
 
+            {/* PowerPoint Asociado 365 */}
             <div className="certificacion-card">
               <div className="certificacion-header">
                 <input
                   type="checkbox"
-                  id="powerpoint_365"
+                  id="powerpoint_asociado_365"
                   checked={certificaciones.office365.powerpointAsociado.seleccionado}
                   onChange={() => handleCertificacionToggle('office365', 'powerpointAsociado')}
                 />
-                <label htmlFor="powerpoint_365" className="certificacion-label">
+                <label htmlFor="powerpoint_asociado_365" className="certificacion-label">
                   Microsoft PowerPoint Asociado - 365
                 </label>
               </div>
@@ -821,53 +862,55 @@ const handleSubmit = async (e) => {
               )}
             </div>
 
+            {/* Word Expert 365 */}
             <div className="certificacion-card">
               <div className="certificacion-header">
                 <input
                   type="checkbox"
-                  id="word_365_2"
-                  checked={certificaciones.office365.wordAsociado2.seleccionado}
-                  onChange={() => handleCertificacionToggle('office365', 'wordAsociado2')}
+                  id="word_expert_365"
+                  checked={certificaciones.office365.wordExpert.seleccionado}
+                  onChange={() => handleCertificacionToggle('office365', 'wordExpert')}
                 />
-                <label htmlFor="word_365_2" className="certificacion-label">
+                <label htmlFor="word_expert_365" className="certificacion-label">
                   Microsoft Word Expert - 365
                 </label>
               </div>
-              {certificaciones.office365.wordAsociado2.seleccionado && (
+              {certificaciones.office365.wordExpert.seleccionado && (
                 <div className="certificacion-archivo">
                   <input
                     type="file"
-                    onChange={(e) => handleArchivoChange('office365', 'wordAsociado2', e)}
+                    onChange={(e) => handleArchivoChange('office365', 'wordExpert', e)}
                     accept=".pdf,.jpg,.jpeg,.png"
                   />
-                  {certificaciones.office365.wordAsociado2.nombreArchivo && (
-                    <small className="file-info">Archivo: {certificaciones.office365.wordAsociado2.nombreArchivo}</small>
+                  {certificaciones.office365.wordExpert.nombreArchivo && (
+                    <small className="file-info">Archivo: {certificaciones.office365.wordExpert.nombreArchivo}</small>
                   )}
                 </div>
               )}
             </div>
 
+            {/* Excel Expert 365 */}
             <div className="certificacion-card">
               <div className="certificacion-header">
                 <input
                   type="checkbox"
-                  id="excel_365_2"
-                  checked={certificaciones.office365.excelAsociado2.seleccionado}
-                  onChange={() => handleCertificacionToggle('office365', 'excelAsociado2')}
+                  id="excel_expert_365"
+                  checked={certificaciones.office365.excelExpert.seleccionado}
+                  onChange={() => handleCertificacionToggle('office365', 'excelExpert')}
                 />
-                <label htmlFor="excel_365_2" className="certificacion-label">
+                <label htmlFor="excel_expert_365" className="certificacion-label">
                   Microsoft Excel Expert - 365
                 </label>
               </div>
-              {certificaciones.office365.excelAsociado2.seleccionado && (
+              {certificaciones.office365.excelExpert.seleccionado && (
                 <div className="certificacion-archivo">
                   <input
                     type="file"
-                    onChange={(e) => handleArchivoChange('office365', 'excelAsociado2', e)}
+                    onChange={(e) => handleArchivoChange('office365', 'excelExpert', e)}
                     accept=".pdf,.jpg,.jpeg,.png"
                   />
-                  {certificaciones.office365.excelAsociado2.nombreArchivo && (
-                    <small className="file-info">Archivo: {certificaciones.office365.excelAsociado2.nombreArchivo}</small>
+                  {certificaciones.office365.excelExpert.nombreArchivo && (
+                    <small className="file-info">Archivo: {certificaciones.office365.excelExpert.nombreArchivo}</small>
                   )}
                 </div>
               )}
