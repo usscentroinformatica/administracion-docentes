@@ -251,3 +251,13 @@
     font-size: 12px;
   }
 }
+
+/* Separador entre admin y docente */
+.separador {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #ccc, transparent);
+  margin: 20px 0;
+}
+
+
+
