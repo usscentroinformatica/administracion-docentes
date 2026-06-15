@@ -12,7 +12,7 @@ function App() {
   const [mostrarLista, setMostrarLista] = useState(false);
   const [docenteLogueado, setDocenteLogueado] = useState(null);
   
-  // Estado para Admin
+  // Estado para Admin (como estaba)
   const [passwordInput, setPasswordInput] = useState('');
   const [errorPassword, setErrorPassword] = useState('');
   const [verificando, setVerificando] = useState(false);
@@ -21,9 +21,7 @@ function App() {
   const [dniDocente, setDniDocente] = useState('');
   const [errorDocente, setErrorDocente] = useState('');
   const [verificandoDocente, setVerificandoDocente] = useState(false);
-  const [modoAcceso, setModoAcceso] = useState('admin');
 
-  // Verificar sesión de docente al cargar
   useEffect(() => {
     const docenteSession = localStorage.getItem('docenteSession');
     if (docenteSession) {
@@ -44,7 +42,6 @@ function App() {
       setErrorPassword('');
       setDniDocente('');
       setErrorDocente('');
-      setModoAcceso('admin');
     }
   };
 
@@ -75,7 +72,6 @@ function App() {
     }
   };
 
-  // Verificar docente SOLO CON DNI (sin contraseña)
   const verificarDocente = async () => {
     if (!dniDocente.trim()) {
       setErrorDocente('❌ Ingrese su DNI');
@@ -113,7 +109,6 @@ function App() {
             lugarResidencia: docenteEncontrado.lugarResidencia,
             gradoMaestria: docenteEncontrado.gradoMaestria,
             fotoBase64: docenteEncontrado.fotoBase64,
-            fechaNacimiento: docenteEncontrado.fechaNacimiento,
             loginTime: new Date().getTime()
           };
           
@@ -129,14 +124,13 @@ function App() {
         setErrorDocente('❌ No hay docentes registrados');
       }
     } catch (error) {
-      console.error('Error:', error);
-      setErrorDocente('❌ Error al conectar con el servidor');
+      setErrorDocente('❌ Error al conectar');
     } finally {
       setVerificandoDocente(false);
     }
   };
 
-  const handleKeyPressAdmin = (e) => {
+  const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       verificarPassword();
     }
@@ -172,68 +166,50 @@ function App() {
 
       <div className={`panel-lateral ${panelAbierto ? 'abierto' : ''}`}>
         <div className="panel-header">
-          <h3>📁 Acceso al Sistema</h3>
+          <h3>📁 Acceso</h3>
           <button className="btn-cerrar-panel" onClick={togglePanel}>✕</button>
         </div>
         
         <div className="panel-contenido">
-          <div className="selector-acceso">
-            <button 
-              className={`selector-btn ${modoAcceso === 'admin' ? 'active' : ''}`}
-              onClick={() => setModoAcceso('admin')}
-            >
-              👑 Administrador
-            </button>
-            <button 
-              className={`selector-btn ${modoAcceso === 'docente' ? 'active' : ''}`}
-              onClick={() => setModoAcceso('docente')}
-            >
-              👨‍🏫 Docente
+          {/* Campo para Administrador */}
+          <div className="password-section">
+            <label className="password-label">🔒 Administrador</label>
+            <input
+              type="password"
+              className="password-input-panel"
+              placeholder="Contraseña"
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              disabled={verificando}
+            />
+            {errorPassword && <p className="error-password">{errorPassword}</p>}
+            <button className="btn-verificar" onClick={verificarPassword} disabled={verificando}>
+              {verificando ? '...' : 'Ver Docentes'}
             </button>
           </div>
 
-          {modoAcceso === 'admin' && (
-            <div className="acceso-admin">
-              <label className="password-label">🔒 Contraseña de Administrador</label>
-              <input
-                type="password"
-                className="password-input-panel"
-                placeholder="Ingrese la contraseña"
-                value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
-                onKeyPress={handleKeyPressAdmin}
-                disabled={verificando}
-              />
-              {errorPassword && <p className="error-password">{errorPassword}</p>}
-              <button className="btn-verificar" onClick={verificarPassword} disabled={verificando}>
-                {verificando ? '⏳ Verificando...' : '📋 Ver Docentes'}
-              </button>
-            </div>
-          )}
+          {/* Separador */}
+          <div className="separador"></div>
 
-          {modoAcceso === 'docente' && (
-            <div className="acceso-docente">
-              <label className="password-label">📄 Ingrese su DNI</label>
-              <input
-                type="text"
-                className="password-input-panel"
-                placeholder="DNI (8 dígitos)"
-                value={dniDocente}
-                onChange={(e) => setDniDocente(e.target.value)}
-                onKeyPress={handleKeyPressDocente}
-                disabled={verificandoDocente}
-                maxLength="8"
-                autoFocus
-              />
-              {errorDocente && <p className="error-password">{errorDocente}</p>}
-              <button className="btn-verificar" onClick={verificarDocente} disabled={verificandoDocente}>
-                {verificandoDocente ? '⏳ Verificando...' : '👨‍🏫 Ingresar a Mi Perfil'}
-              </button>
-              <p className="password-hint">
-                ℹ️ Ingrese su DNI para ver y editar su información
-              </p>
-            </div>
-          )}
+          {/* Campo para Docente */}
+          <div className="password-section">
+            <label className="password-label">👨‍🏫 Docente</label>
+            <input
+              type="text"
+              className="password-input-panel"
+              placeholder="DNI"
+              value={dniDocente}
+              onChange={(e) => setDniDocente(e.target.value)}
+              onKeyPress={handleKeyPressDocente}
+              disabled={verificandoDocente}
+              maxLength="8"
+            />
+            {errorDocente && <p className="error-password">{errorDocente}</p>}
+            <button className="btn-verificar" onClick={verificarDocente} disabled={verificandoDocente}>
+              {verificandoDocente ? '...' : 'Ingresar'}
+            </button>
+          </div>
         </div>
       </div>
 
