@@ -313,3 +313,67 @@
     right: -100%;
   }
 }
+
+/* Estilos para el header con botones */
+.lista-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #5a2290 0%, #7b2cb8 100%);
+  color: white;
+  border-radius: 10px 10px 0 0;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Botón para ver Google Sheets */
+.btn-ver-sheets {
+  background: #0F9D58;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-ver-sheets:hover {
+  background: #0b7e48;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.btn-ver-sheets:active {
+  transform: translateY(0);
+}
+
+/* Botón de cerrar */
+.btn-cerrar {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.btn-cerrar:hover {
+  background: rgba(255,255,255,0.3);
+  transform: rotate(90deg);
+}
