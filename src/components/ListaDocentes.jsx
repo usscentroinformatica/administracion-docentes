@@ -11,6 +11,14 @@ const ListaDocentes = ({ onClose }) => {
   const [certificacionesMap, setCertificacionesMap] = useState({});
   const [certificacionesDetalle, setCertificacionesDetalle] = useState([]);
 
+  // URL de tu hoja de cálculo de Google Sheets
+  const GOOGLE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1GOJZQDx1XSpudu_80gok1Nuq9YzMvKkLR9fy-jYsyt0/edit';
+
+  // Función para abrir Google Sheets
+  const abrirGoogleSheets = () => {
+    window.open(GOOGLE_SHEETS_URL, '_blank');
+  };
+
   // Cargar docentes al abrir
   useEffect(() => {
     cargarDocentes();
@@ -144,7 +152,17 @@ const ListaDocentes = ({ onClose }) => {
         <div className="lista-docentes-container">
           <div className="lista-header">
             <h3>📋 Docentes Registrados</h3>
-            <button className="btn-cerrar" onClick={onClose}>✕</button>
+            <div className="header-buttons">
+              {/* Botón para ver Google Sheets */}
+              <button 
+                className="btn-ver-sheets" 
+                onClick={abrirGoogleSheets}
+                title="Ver hoja de cálculo de Google Sheets"
+              >
+                📊 Ver Hoja de Cálculo
+              </button>
+              <button className="btn-cerrar" onClick={onClose}>✕</button>
+            </div>
           </div>
 
           {loading ? (
