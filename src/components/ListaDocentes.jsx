@@ -38,7 +38,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
   const [mostrarCertificaciones, setMostrarCertificaciones] = useState(false);
 
   // URL de tu Google Apps Script (ACTUALIZADA)
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbywYXhKfKDpZfJfHVGbJMAbl3-ohxWg4YxJPtMexhJIB-Obvo9V29-37ygn5j6_WtKg/exec';
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz20XIQEWSIyWZEvkV4ox5lO84K54QUU3b4b3KdG33oeuAy3j1VnSc06_SrIu1lPJxv/exec';
   const GOOGLE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1GOJZQDx1XSpudu_80gok1Nuq9YzMvKkLR9fy-jYsyt0/edit';
 
   const abrirGoogleSheets = () => {
