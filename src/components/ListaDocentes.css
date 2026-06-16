@@ -517,6 +517,127 @@
   }
 }
 
+/* Estilos para certificaciones */
+.certificaciones-section {
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 2px solid #f0f0f0;
+}
 
+.certificaciones-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.certificaciones-header h4 {
+  margin: 0;
+  color: #5a2290;
+}
+
+.btn-agregar-cert {
+  background: #2196F3;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.certificaciones-edicion {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 10px;
+  margin-top: 15px;
+}
+
+.certificacion-grupo {
+  margin-bottom: 25px;
+}
+
+.certificacion-grupo h5 {
+  color: #5a2290;
+  margin-bottom: 15px;
+  padding-bottom: 5px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.certificaciones-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 15px;
+}
+
+.certificacion-card {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.certificacion-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.certificacion-header input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.certificacion-header label {
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.certificacion-archivo {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+}
+
+.certificacion-archivo input {
+  width: 100%;
+  padding: 8px;
+  font-size: 12px;
+}
+
+.certificacion-archivo small {
+  display: block;
+  margin-top: 5px;
+  font-size: 11px;
+  color: #666;
+}
+
+.acciones-certificaciones {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.btn-guardar-cert {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-cancelar-cert {
+  background: #9e9e9e;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
 
 
