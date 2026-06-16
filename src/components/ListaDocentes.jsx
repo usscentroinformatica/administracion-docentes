@@ -37,10 +37,62 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
   });
   const [mostrarCertificaciones, setMostrarCertificaciones] = useState(false);
 
+  // ⚠️ URL de tu Google Apps Script
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxiR0ww44ulgBBgC8RQlJUgh8iCZXoZGdfYy_0Rdrqtfo1Q9u434qbbSBz2RP_l5TCv/exec';
+
   const GOOGLE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1GOJZQDx1XSpudu_80gok1Nuq9YzMvKkLR9fy-jYsyt0/edit';
 
   const abrirGoogleSheets = () => {
     window.open(GOOGLE_SHEETS_URL, '_blank');
+  };
+
+  // Función para obtener el estado actual de las certificaciones
+  const obtenerEstadoCertificaciones = () => {
+    return {
+      word2019Asociado: certificaciones.office2019.wordAsociado.seleccionado ? '✅' : '❌',
+      excel2019Asociado: certificaciones.office2019.excelAsociado.seleccionado ? '✅' : '❌',
+      ppt2019Asociado: certificaciones.office2019.powerpointAsociado.seleccionado ? '✅' : '❌',
+      word2019Expert: certificaciones.office2019.wordExpert.seleccionado ? '✅' : '❌',
+      excel2019Expert: certificaciones.office2019.excelExpert.seleccionado ? '✅' : '❌',
+      word365Asociado: certificaciones.office365.wordAsociado.seleccionado ? '✅' : '❌',
+      excel365Asociado: certificaciones.office365.excelAsociado.seleccionado ? '✅' : '❌',
+      ppt365Asociado: certificaciones.office365.powerpointAsociado.seleccionado ? '✅' : '❌',
+      word365Expert: certificaciones.office365.wordExpert.seleccionado ? '✅' : '❌',
+      excel365Expert: certificaciones.office365.excelExpert.seleccionado ? '✅' : '❌'
+    };
+  };
+
+  // Función para actualizar Google Sheets
+  const actualizarGoogleSheets = async (docenteData, estadoCerts) => {
+    try {
+      const datosParaGoogle = {
+        apellidos: docenteData.apellidos || '',
+        nombres: docenteData.nombres || '',
+        dni: docenteData.dni || '',
+        fechaNacimiento: docenteData.fechaNacimiento || '',
+        genero: docenteData.genero || '',
+        correo: docenteData.correo || '',
+        celular: docenteData.celular || '',
+        lugarResidencia: docenteData.lugarResidencia || '',
+        gradoMaestria: docenteData.gradoMaestria || '',
+        certificaciones: estadoCerts
+      };
+      
+      console.log('📤 Enviando a Google Sheets:', datosParaGoogle);
+      
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(datosParaGoogle)
+      });
+      
+      console.log('✅ Google Sheets actualizado');
+      return true;
+    } catch (error) {
+      console.error('❌ Error al actualizar Google Sheets:', error);
+      return false;
+    }
   };
 
   useEffect(() => {
@@ -279,11 +331,16 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
       );
       setDocentes(nuevosDocentes);
       
-      setMensaje({ tipo: 'success', texto: '✅ Datos actualizados' });
+      // 🔄 Actualizar Google Sheets
+      const estadoCerts = obtenerEstadoCertificaciones();
+      await actualizarGoogleSheets(editandoDocente, estadoCerts);
+      
+      setMensaje({ tipo: 'success', texto: '✅ Datos actualizados y sincronizados con Google Sheets' });
       setModoEdicion(false);
       setTimeout(() => setMensaje(''), 3000);
     } catch (error) {
-      setMensaje({ tipo: 'error', texto: '❌ Error al actualizar' });
+      console.error('Error:', error);
+      setMensaje({ tipo: 'error', texto: '❌ Error al actualizar datos' });
     } finally {
       setCargandoActualizacion(false);
     }
@@ -354,6 +411,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     setMensaje('');
     
     try {
+      // Guardar certificaciones en Firebase
       for (const [categoria, certificados] of Object.entries(certificaciones)) {
         for (const [tipo, datos] of Object.entries(certificados)) {
           if (datos.seleccionado && datos.archivo) {
@@ -374,7 +432,11 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
         }
       }
       
-      setMensaje({ tipo: 'success', texto: '✅ Certificaciones guardadas correctamente' });
+      // 🔄 Actualizar Google Sheets con el nuevo estado de certificaciones
+      const estadoCerts = obtenerEstadoCertificaciones();
+      await actualizarGoogleSheets(selectedDocente, estadoCerts);
+      
+      setMensaje({ tipo: 'success', texto: '✅ Certificaciones guardadas y sincronizadas con Google Sheets' });
       setMostrarCertificaciones(false);
       await cargarCertificacionesDocente(selectedDocente.id);
       await cargarCertificacionesState(selectedDocente.id);
@@ -554,7 +616,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                     </div>
                   )}
 
-                  {/* Sección de Certificaciones - igual que DocenteForm */}
+                  {/* Sección de Certificaciones */}
                   <div className="certificaciones-section">
                     <div className="certificaciones-header">
                       <h4>📜 Certificaciones</h4>
