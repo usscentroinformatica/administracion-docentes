@@ -62,38 +62,49 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     };
   };
 
-  // Función para actualizar Google Sheets
   const actualizarGoogleSheets = async (docenteData, estadoCerts) => {
-    try {
-      const datosParaGoogle = {
-        apellidos: docenteData.apellidos || '',
-        nombres: docenteData.nombres || '',
-        dni: docenteData.dni || '',
-        fechaNacimiento: docenteData.fechaNacimiento || '',
-        genero: docenteData.genero || '',
-        correo: docenteData.correo || '',
-        celular: docenteData.celular || '',
-        lugarResidencia: docenteData.lugarResidencia || '',
-        gradoMaestria: docenteData.gradoMaestria || '',
-        certificaciones: estadoCerts
-      };
-      
-      console.log('📤 Enviando a Google Sheets:', datosParaGoogle);
-      
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(datosParaGoogle)
-      });
-      
-      console.log('✅ Google Sheets actualizado');
+  try {
+    const datosParaGoogle = {
+      apellidos: docenteData.apellidos || '',
+      nombres: docenteData.nombres || '',
+      dni: docenteData.dni || '',
+      fechaNacimiento: docenteData.fechaNacimiento || '',
+      genero: docenteData.genero || '',
+      correo: docenteData.correo || '',
+      celular: docenteData.celular || '',
+      lugarResidencia: docenteData.lugarResidencia || '',
+      gradoMaestria: docenteData.gradoMaestria || '',
+      certificaciones: estadoCerts
+    };
+    
+    console.log('📤 Enviando a Google Sheets:', datosParaGoogle);
+    
+    // IMPORTANTE: QUITA el 'mode: "no-cors"'
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(datosParaGoogle)
+    });
+    
+    const resultado = await response.json();
+    console.log('📥 Respuesta:', resultado);
+    
+    if (resultado.success) {
+      if (resultado.action === 'updated') {
+        console.log('✅ Docente ACTUALIZADO en Google Sheets');
+      } else {
+        console.log('✅ Nuevo docente AGREGADO en Google Sheets');
+      }
       return true;
-    } catch (error) {
-      console.error('❌ Error al actualizar Google Sheets:', error);
+    } else {
+      console.error('❌ Error en Google Sheets:', resultado.error);
       return false;
     }
-  };
+  } catch (error) {
+    console.error('❌ Error al conectar con Google Sheets:', error);
+    return false;
+  }
+};
 
   useEffect(() => {
     if (modo === 'docente' && docenteId) {
