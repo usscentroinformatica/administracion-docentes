@@ -37,9 +37,8 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
   });
   const [mostrarCertificaciones, setMostrarCertificaciones] = useState(false);
 
-  // ⚠️ URL de tu Google Apps Script
+  // URL de tu Google Apps Script (ACTUALIZADA)
   const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbydHtUqnKyVC3nWxhTg5norolcgNTLG4NtNx-6V_aHz15acWLFrS-2tYrJf4Y697r9g/exec';
-
   const GOOGLE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1GOJZQDx1XSpudu_80gok1Nuq9YzMvKkLR9fy-jYsyt0/edit';
 
   const abrirGoogleSheets = () => {
@@ -62,49 +61,48 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     };
   };
 
+  // Función para actualizar Google Sheets (funciona con CORS)
   const actualizarGoogleSheets = async (docenteData, estadoCerts) => {
-  try {
-    const datosParaGoogle = {
-      apellidos: docenteData.apellidos || '',
-      nombres: docenteData.nombres || '',
-      dni: docenteData.dni || '',
-      fechaNacimiento: docenteData.fechaNacimiento || '',
-      genero: docenteData.genero || '',
-      correo: docenteData.correo || '',
-      celular: docenteData.celular || '',
-      lugarResidencia: docenteData.lugarResidencia || '',
-      gradoMaestria: docenteData.gradoMaestria || '',
-      certificaciones: estadoCerts
-    };
-    
-    console.log('📤 Enviando a Google Sheets:', datosParaGoogle);
-    
-    // IMPORTANTE: QUITA el 'mode: "no-cors"'
-    const response = await fetch(GOOGLE_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(datosParaGoogle)
-    });
-    
-    const resultado = await response.json();
-    console.log('📥 Respuesta:', resultado);
-    
-    if (resultado.success) {
-      if (resultado.action === 'updated') {
-        console.log('✅ Docente ACTUALIZADO en Google Sheets');
+    try {
+      const datosParaGoogle = {
+        apellidos: docenteData.apellidos || '',
+        nombres: docenteData.nombres || '',
+        dni: docenteData.dni || '',
+        fechaNacimiento: docenteData.fechaNacimiento || '',
+        genero: docenteData.genero || '',
+        correo: docenteData.correo || '',
+        celular: docenteData.celular || '',
+        lugarResidencia: docenteData.lugarResidencia || '',
+        gradoMaestria: docenteData.gradoMaestria || '',
+        certificaciones: estadoCerts
+      };
+      
+      console.log('📤 Enviando a Google Sheets:', datosParaGoogle);
+      console.log('📤 DNI a actualizar:', docenteData.dni);
+      
+      // Usar sendBeacon que no tiene problemas de CORS
+      const blob = new Blob([JSON.stringify(datosParaGoogle)], { type: 'application/json' });
+      const enviado = navigator.sendBeacon(GOOGLE_SCRIPT_URL, blob);
+      
+      if (enviado) {
+        console.log('✅ Petición enviada correctamente a Google Sheets');
+        return true;
       } else {
-        console.log('✅ Nuevo docente AGREGADO en Google Sheets');
+        // Fallback a fetch con no-cors
+        await fetch(GOOGLE_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(datosParaGoogle)
+        });
+        console.log('✅ Petición enviada (fallback)');
+        return true;
       }
-      return true;
-    } else {
-      console.error('❌ Error en Google Sheets:', resultado.error);
+    } catch (error) {
+      console.error('❌ Error al enviar a Google Sheets:', error);
       return false;
     }
-  } catch (error) {
-    console.error('❌ Error al conectar con Google Sheets:', error);
-    return false;
-  }
-};
+  };
 
   useEffect(() => {
     if (modo === 'docente' && docenteId) {
@@ -329,6 +327,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     setMensaje('');
     
     try {
+      // 1. Actualizar Firebase
       const docenteRef = ref(db, `docentes/${selectedDocente.id}`);
       await update(docenteRef, {
         celular: editandoDocente.celular,
@@ -342,7 +341,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
       );
       setDocentes(nuevosDocentes);
       
-      // 🔄 Actualizar Google Sheets
+      // 2. Actualizar Google Sheets
       const estadoCerts = obtenerEstadoCertificaciones();
       await actualizarGoogleSheets(editandoDocente, estadoCerts);
       
@@ -443,7 +442,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
         }
       }
       
-      // 🔄 Actualizar Google Sheets con el nuevo estado de certificaciones
+      // Actualizar Google Sheets con el nuevo estado de certificaciones
       const estadoCerts = obtenerEstadoCertificaciones();
       await actualizarGoogleSheets(selectedDocente, estadoCerts);
       
