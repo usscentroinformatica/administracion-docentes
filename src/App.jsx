@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import DocenteForm from './components/DocenteForm';
 import ListaDocentes from './components/ListaDocentes';
+import DocentesFaltantes from './components/DocentesFaltantes'; // 👈 NUEVO IMPORT
 import { verificarPasswordAdmin } from './firebase/authService';
 import { db } from './firebase/config';
 import { ref, get, child } from 'firebase/database';
@@ -10,6 +11,7 @@ import './App.css';
 function App() {
   const [panelAbierto, setPanelAbierto] = useState(false);
   const [mostrarLista, setMostrarLista] = useState(false);
+  const [mostrarFaltantes, setMostrarFaltantes] = useState(false); // 👈 NUEVO ESTADO
   const [docenteLogueado, setDocenteLogueado] = useState(null);
   
   const [inputValue, setInputValue] = useState('');
@@ -130,6 +132,14 @@ function App() {
     <div className="app">
       <DocenteForm />
       
+      {/* 👈 NUEVO BOTÓN FLOTANTE PARA VER DOCENTES FALTANTES */}
+      <button 
+        className="btn-flotante-faltantes" 
+        onClick={() => setMostrarFaltantes(!mostrarFaltantes)}
+      >
+        📋
+      </button>
+      
       <button className="btn-flotante" onClick={togglePanel}>
         ☰
       </button>
@@ -166,6 +176,22 @@ function App() {
           onClose={() => setMostrarLista(false)} 
           modo="admin"
         />
+      )}
+
+      {/* 👈 NUEVO: Mostrar docentes faltantes */}
+      {mostrarFaltantes && (
+        <div className="modal-faltantes">
+          <div className="modal-faltantes-overlay" onClick={() => setMostrarFaltantes(false)}></div>
+          <div className="modal-faltantes-content">
+            <button 
+              className="btn-cerrar-modal" 
+              onClick={() => setMostrarFaltantes(false)}
+            >
+              ✕
+            </button>
+            <DocentesFaltantes />
+          </div>
+        </div>
       )}
     </div>
   );
