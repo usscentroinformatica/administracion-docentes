@@ -37,9 +37,9 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
   });
   const [mostrarCertificaciones, setMostrarCertificaciones] = useState(false);
 
-  // 👈 Estado para el switch (true = registrados, false = no registrados)
+  // Estado para el switch (true = registrados, false = no registrados)
   const [mostrarRegistrados, setMostrarRegistrados] = useState(true);
-  // 👈 Estado para docentes faltantes
+  // Estado para docentes faltantes
   const [docentesFaltantes, setDocentesFaltantes] = useState([]);
   const [cargandoFaltantes, setCargandoFaltantes] = useState(false);
 
@@ -51,7 +51,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     window.open(GOOGLE_SHEETS_URL, '_blank');
   };
 
-  // 👈 Función para obtener docentes faltantes desde Google Sheets
+  // Función para obtener docentes faltantes desde Google Sheets
   const cargarDocentesFaltantes = async () => {
     setCargandoFaltantes(true);
     try {
@@ -70,12 +70,11 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     }
   };
 
-  // 👈 Función para alternar el switch
+  // Función para alternar el switch
   const toggleSwitch = () => {
     const nuevoEstado = !mostrarRegistrados;
     setMostrarRegistrados(nuevoEstado);
     
-    // Si cambiamos a "No Registrados", cargar los datos
     if (!nuevoEstado && docentesFaltantes.length === 0) {
       cargarDocentesFaltantes();
     }
@@ -252,17 +251,23 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
   const cargarDocenteUnico = async (id) => {
     setLoading(true);
     try {
+      console.log('🔍 Cargando docente con ID:', id);
       const dbRef = ref(db);
       const snapshot = await get(child(dbRef, `docentes/${id}`));
       
+      console.log('📸 Snapshot existe:', snapshot.exists());
+      
       if (snapshot.exists()) {
         const docente = { id, ...snapshot.val() };
+        console.log('👤 Docente cargado:', docente);
         setDocentes([docente]);
         setSelectedDocente(docente);
         await cargarCertificacionesDocente(id);
+      } else {
+        console.error('❌ No se encontró el docente con ID:', id);
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('❌ Error al cargar docente:', error);
     } finally {
       setLoading(false);
     }
@@ -337,7 +342,18 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
 
   // Funciones para edición de datos personales
   const iniciarEdicion = () => {
-    setEditandoDocente({ ...selectedDocente });
+    setEditandoDocente({ 
+      ...selectedDocente,
+      apellidos: selectedDocente.apellidos || '',
+      nombres: selectedDocente.nombres || '',
+      dni: selectedDocente.dni || '',
+      fechaNacimiento: selectedDocente.fechaNacimiento || '',
+      genero: selectedDocente.genero || '',
+      correo: selectedDocente.correo || '',
+      celular: selectedDocente.celular || '',
+      lugarResidencia: selectedDocente.lugarResidencia || '',
+      gradoMaestria: selectedDocente.gradoMaestria || ''
+    });
     setModoEdicion(true);
   };
 
@@ -357,20 +373,30 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     setMensaje('');
     
     try {
+      // Guardar TODOS los campos en Firebase
       const docenteRef = ref(db, `docentes/${selectedDocente.id}`);
       await update(docenteRef, {
-        celular: editandoDocente.celular,
+        apellidos: editandoDocente.apellidos,
+        nombres: editandoDocente.nombres,
+        fechaNacimiento: editandoDocente.fechaNacimiento,
+        genero: editandoDocente.genero,
         correo: editandoDocente.correo,
-        lugarResidencia: editandoDocente.lugarResidencia
+        celular: editandoDocente.celular,
+        lugarResidencia: editandoDocente.lugarResidencia,
+        gradoMaestria: editandoDocente.gradoMaestria
       });
       
+      // Actualizar el estado local
       setSelectedDocente(editandoDocente);
       const nuevosDocentes = docentes.map(d => 
         d.id === editandoDocente.id ? editandoDocente : d
       );
       setDocentes(nuevosDocentes);
       
+      // Obtener el estado de certificaciones
       const estadoCerts = obtenerEstadoCertificaciones();
+      
+      // Enviar a Google Sheets con todos los datos
       await actualizarGoogleSheets(editandoDocente, estadoCerts);
       
       setMensaje({ tipo: 'success', texto: '✅ Datos actualizados y sincronizados con Google Sheets' });
@@ -565,13 +591,13 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
 
           {loading ? (
             <div className="loading-spinner">Cargando...</div>
-          ) : docentes.length === 0 ? (
+          ) : docentes.length === 0 && modo === 'admin' ? (
             <div className="sin-docentes">No hay docentes registrados</div>
           ) : (
             <div className="lista-contenido">
+              {/* Modo Admin: Mostrar lista de docentes */}
               {modo === 'admin' && (
                 <div className="lista-docentes">
-                  {/* Header con switch */}
                   <div className="lista-header-switch">
                     <h4>{tituloLista}</h4>
                     <div className="switch-container">
@@ -646,11 +672,23 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                 </div>
               )}
 
-              {/* Detalle del docente seleccionado solo en modo admin y viendo registrados */}
-              {modo === 'admin' && mostrarRegistrados && selectedDocente && (
+              {/* Detalle del docente - Visible en modo admin (al seleccionar) y en modo docente */}
+              {selectedDocente && (modo === 'admin' || modo === 'docente') && (
                 <div className="docente-detalle">
                   <div className="detalle-header">
                     <h4>📄 Información Personal</h4>
+                    {/* Botón Editar - Solo visible en modo docente */}
+                    {modo === 'docente' && !modoEdicion && (
+                      <button className="btn-editar-perfil" onClick={iniciarEdicion}>
+                        ✏️ Editar Datos
+                      </button>
+                    )}
+                    {/* Botón Cancelar edición - Solo visible en modo docente y editando */}
+                    {modo === 'docente' && modoEdicion && (
+                      <button className="btn-cancelar-edicion-header" onClick={cancelarEdicion}>
+                        ❌ Cancelar
+                      </button>
+                    )}
                   </div>
                   
                   <div className="detalle-foto">
@@ -661,46 +699,259 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                     )}
                   </div>
 
-                  <div className="detalle-info">
-                    <p><strong>Nombres:</strong> {selectedDocente.nombres}</p>
-                    <p><strong>Apellidos:</strong> {selectedDocente.apellidos}</p>
-                    <p><strong>DNI:</strong> {selectedDocente.dni}</p>
-                    <p><strong>Correo:</strong> {selectedDocente.correo}</p>
-                    <p><strong>Celular:</strong> {selectedDocente.celular}</p>
-                    <p><strong>Residencia:</strong> {selectedDocente.lugarResidencia}</p>
-                  </div>
+                  {modo === 'docente' && modoEdicion ? (
+                    // ============================================
+                    // MODO EDICIÓN - TODOS LOS CAMPOS EDITABLES
+                    // ============================================
+                    <div className="detalle-info-edicion">
+                      <div className="campo-edicion">
+                        <label>Apellidos *</label>
+                        <input 
+                          type="text" 
+                          name="apellidos" 
+                          value={editandoDocente?.apellidos || ''} 
+                          onChange={handleEditChange}
+                          disabled={cargandoActualizacion}
+                          required
+                        />
+                      </div>
+                      <div className="campo-edicion">
+                        <label>Nombres *</label>
+                        <input 
+                          type="text" 
+                          name="nombres" 
+                          value={editandoDocente?.nombres || ''} 
+                          onChange={handleEditChange}
+                          disabled={cargandoActualizacion}
+                          required
+                        />
+                      </div>
+                      <div className="campo-edicion">
+                        <label>DNI *</label>
+                        <input 
+                          type="text" 
+                          name="dni" 
+                          value={editandoDocente?.dni || ''} 
+                          disabled 
+                          style={{ backgroundColor: '#e9ecef' }}
+                        />
+                        <small className="hint-text">El DNI no se puede modificar</small>
+                      </div>
+                      <div className="campo-edicion">
+                        <label>Fecha de Nacimiento *</label>
+                        <input 
+                          type="date" 
+                          name="fechaNacimiento" 
+                          value={editandoDocente?.fechaNacimiento || ''} 
+                          onChange={handleEditChange}
+                          disabled={cargandoActualizacion}
+                          required
+                        />
+                      </div>
+                      <div className="campo-edicion">
+                        <label>Género *</label>
+                        <select 
+                          name="genero" 
+                          value={editandoDocente?.genero || ''} 
+                          onChange={handleEditChange}
+                          disabled={cargandoActualizacion}
+                          required
+                        >
+                          <option value="">Seleccione un género</option>
+                          <option value="femenino">FEMENINO</option>
+                          <option value="masculino">MASCULINO</option>
+                          <option value="otro">OTRO</option>
+                          <option value="prefiero_no_decir">PREFIERO NO DECIR</option>
+                        </select>
+                      </div>
+                      <div className="campo-edicion">
+                        <label>Correo Institucional *</label>
+                        <input 
+                          type="email" 
+                          name="correo" 
+                          value={editandoDocente?.correo || ''} 
+                          onChange={handleEditChange}
+                          disabled={cargandoActualizacion}
+                          required
+                        />
+                      </div>
+                      <div className="campo-edicion">
+                        <label>Celular *</label>
+                        <input 
+                          type="tel" 
+                          name="celular" 
+                          value={editandoDocente?.celular || ''} 
+                          onChange={handleEditChange} 
+                          maxLength="9"
+                          disabled={cargandoActualizacion}
+                          required
+                        />
+                        <small className="hint-text">9 dígitos numéricos</small>
+                      </div>
+                      <div className="campo-edicion">
+                        <label>Lugar de Residencia *</label>
+                        <input 
+                          type="text" 
+                          name="lugarResidencia" 
+                          value={editandoDocente?.lugarResidencia || ''} 
+                          onChange={handleEditChange}
+                          disabled={cargandoActualizacion}
+                          required
+                        />
+                      </div>
+                      <div className="campo-edicion">
+                        <label>Grado de Maestría *</label>
+                        <select 
+                          name="gradoMaestria" 
+                          value={editandoDocente?.gradoMaestria || ''} 
+                          onChange={handleEditChange}
+                          disabled={cargandoActualizacion}
+                          required
+                        >
+                          <option value="">Seleccione un grado</option>
+                          <option value="ninguno">NINGUNO</option>
+                          <option value="cursando">CURSANDO MAESTRÍA</option>
+                          <option value="magister">MAGÍSTER</option>
+                          <option value="doctor">DOCTOR</option>
+                        </select>
+                      </div>
+                      <div className="acciones-edicion">
+                        <button className="btn-guardar-edicion" onClick={guardarCambios} disabled={cargandoActualizacion}>
+                          {cargandoActualizacion ? 'Guardando...' : '💾 Guardar Cambios'}
+                        </button>
+                        <button className="btn-cancelar-edicion" onClick={cancelarEdicion} disabled={cargandoActualizacion}>
+                          ❌ Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    // ============================================
+                    // MODO VISUALIZACIÓN - MOSTRAR DATOS
+                    // ============================================
+                    <div className="detalle-info">
+                      <p><strong>Nombres:</strong> {selectedDocente.nombres || 'No especificado'}</p>
+                      <p><strong>Apellidos:</strong> {selectedDocente.apellidos || 'No especificado'}</p>
+                      <p><strong>DNI:</strong> {selectedDocente.dni || 'No especificado'}</p>
+                      <p><strong>Fecha Nacimiento:</strong> {selectedDocente.fechaNacimiento || 'No especificado'}</p>
+                      <p><strong>Género:</strong> {selectedDocente.genero || 'No especificado'}</p>
+                      <p><strong>Correo:</strong> {selectedDocente.correo || 'No especificado'}</p>
+                      <p><strong>Celular:</strong> {selectedDocente.celular || 'No especificado'}</p>
+                      <p><strong>Residencia:</strong> {selectedDocente.lugarResidencia || 'No especificado'}</p>
+                      <p><strong>Grado Maestría:</strong> {selectedDocente.gradoMaestria || 'No especificado'}</p>
+                    </div>
+                  )}
 
-                  {/* Sección de Certificaciones */}
+                  {/* Sección de Certificaciones - Visible en ambos modos */}
                   <div className="certificaciones-section">
                     <div className="certificaciones-header">
                       <h4>📜 Certificaciones</h4>
+                      {modo === 'docente' && !mostrarCertificaciones && (
+                        <button className="btn-agregar-cert" onClick={() => setMostrarCertificaciones(true)}>
+                          ➕ Agregar/Editar Certificaciones
+                        </button>
+                      )}
                     </div>
 
-                    <div className="certificaciones-lista">
-                      {certificadosList.map(cert => {
-                        const certificadoData = certificacionesDetalle.find(c => c.nombre === cert);
-                        const tieneCertificado = !!certificacionesMap[cert];
-                        
-                        return (
-                          <div key={cert} className="cert-item">
-                            <span className={`check-icon ${tieneCertificado ? 'checked' : 'unchecked'}`}>
-                              {tieneCertificado ? '✅' : '❌'}
-                            </span>
-                            <span className={`cert-nombre ${tieneCertificado ? 'completado' : 'pendiente'}`}>
-                              {cert}
-                            </span>
-                            {tieneCertificado && certificadoData?.archivoBase64 && (
-                              <button 
-                                className="btn-ver-pdf"
-                                onClick={() => verArchivo(certificadoData.archivoBase64, cert)}
-                              >
-                                📄 Ver Certificado
-                              </button>
-                            )}
+                    {mostrarCertificaciones ? (
+                      <div className="certificaciones-edicion">
+                        {/* Office 2019 */}
+                        <div className="certificacion-grupo">
+                          <h5>Microsoft Office 2019</h5>
+                          <div className="certificaciones-grid">
+                            {Object.entries(certificaciones.office2019).map(([tipo, datos]) => (
+                              <div key={tipo} className="certificacion-card">
+                                <div className="certificacion-header">
+                                  <input
+                                    type="checkbox"
+                                    checked={datos.seleccionado}
+                                    onChange={() => handleCertificacionToggle('office2019', tipo)}
+                                  />
+                                  <label>{getNombreCertificado('office2019', tipo)}</label>
+                                </div>
+                                {datos.seleccionado && (
+                                  <div className="certificacion-archivo">
+                                    <input
+                                      type="file"
+                                      onChange={(e) => handleArchivoChange('office2019', tipo, e)}
+                                      accept=".pdf,.jpg,.jpeg,.png"
+                                    />
+                                    {datos.nombreArchivo && (
+                                      <small>Archivo: {datos.nombreArchivo}</small>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
                           </div>
-                        );
-                      })}
-                    </div>
+                        </div>
+
+                        {/* Office 365 */}
+                        <div className="certificacion-grupo">
+                          <h5>Microsoft Office 365</h5>
+                          <div className="certificaciones-grid">
+                            {Object.entries(certificaciones.office365).map(([tipo, datos]) => (
+                              <div key={tipo} className="certificacion-card">
+                                <div className="certificacion-header">
+                                  <input
+                                    type="checkbox"
+                                    checked={datos.seleccionado}
+                                    onChange={() => handleCertificacionToggle('office365', tipo)}
+                                  />
+                                  <label>{getNombreCertificado('office365', tipo)}</label>
+                                </div>
+                                {datos.seleccionado && (
+                                  <div className="certificacion-archivo">
+                                    <input
+                                      type="file"
+                                      onChange={(e) => handleArchivoChange('office365', tipo, e)}
+                                      accept=".pdf,.jpg,.jpeg,.png"
+                                    />
+                                    {datos.nombreArchivo && (
+                                      <small>Archivo: {datos.nombreArchivo}</small>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="acciones-certificaciones">
+                          <button className="btn-guardar-cert" onClick={guardarCertificacionesDocente} disabled={cargandoActualizacion}>
+                            {cargandoActualizacion ? 'Guardando...' : '💾 Guardar Certificaciones'}
+                          </button>
+                          <button className="btn-cancelar-cert" onClick={() => setMostrarCertificaciones(false)}>
+                            ❌ Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="certificaciones-lista">
+                        {certificadosList.map(cert => {
+                          const certificadoData = certificacionesDetalle.find(c => c.nombre === cert);
+                          const tieneCertificado = !!certificacionesMap[cert];
+                          
+                          return (
+                            <div key={cert} className="cert-item">
+                              <span className={`check-icon ${tieneCertificado ? 'checked' : 'unchecked'}`}>
+                                {tieneCertificado ? '✅' : '❌'}
+                              </span>
+                              <span className={`cert-nombre ${tieneCertificado ? 'completado' : 'pendiente'}`}>
+                                {cert}
+                              </span>
+                              {tieneCertificado && certificadoData?.archivoBase64 && (
+                                <button 
+                                  className="btn-ver-pdf"
+                                  onClick={() => verArchivo(certificadoData.archivoBase64, cert)}
+                                >
+                                  📄 Ver Certificado
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
