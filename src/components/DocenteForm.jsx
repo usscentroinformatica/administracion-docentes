@@ -154,19 +154,13 @@ const DocenteForm = () => {
     }))
   }
 
-  // ============================================
-  // 🔥 FUNCIÓN ACTUALIZADA: "Sí" y "No" en lugar de ✅ y ❌
-  // ============================================
   const obtenerEstadoCertificaciones = () => {
     return {
-      // Office 2019
       word2019Asociado: certificaciones.office2019.wordAsociado.seleccionado ? 'Sí' : 'No',
       excel2019Asociado: certificaciones.office2019.excelAsociado.seleccionado ? 'Sí' : 'No',
       ppt2019Asociado: certificaciones.office2019.powerpointAsociado.seleccionado ? 'Sí' : 'No',
       word2019Expert: certificaciones.office2019.wordExpert.seleccionado ? 'Sí' : 'No',
       excel2019Expert: certificaciones.office2019.excelExpert.seleccionado ? 'Sí' : 'No',
-      
-      // Office 365
       word365Asociado: certificaciones.office365.wordAsociado.seleccionado ? 'Sí' : 'No',
       excel365Asociado: certificaciones.office365.excelAsociado.seleccionado ? 'Sí' : 'No',
       ppt365Asociado: certificaciones.office365.powerpointAsociado.seleccionado ? 'Sí' : 'No',
@@ -175,17 +169,12 @@ const DocenteForm = () => {
     };
   };
 
-  // ============================================
-  // 🔥 FUNCIÓN ACTUALIZADA: Incluye fechaRegistro
-  // ============================================
   const guardarEnGoogleSheets = async (docenteData) => {
     const estadoCertificaciones = obtenerEstadoCertificaciones();
-    
-    // Fecha de registro (usar la fecha actual)
     const fechaRegistro = new Date().toISOString();
     
     const datosParaGoogle = {
-      fechaRegistro: fechaRegistro, // 👈 AGREGADO
+      fechaRegistro: fechaRegistro,
       apellidos: docenteData.apellidos,
       nombres: docenteData.nombres,
       dni: docenteData.dni,
@@ -202,7 +191,6 @@ const DocenteForm = () => {
       console.log('📤 Enviando a Google Sheets:', datosParaGoogle);
       console.log('📅 Fecha de registro:', fechaRegistro);
       
-      // Usar sendBeacon para evitar problemas de CORS
       const blob = new Blob([JSON.stringify(datosParaGoogle)], { type: 'application/json' });
       const enviado = navigator.sendBeacon(GOOGLE_SCRIPT_URL, blob);
       
@@ -368,12 +356,11 @@ const DocenteForm = () => {
       const fotoBase64 = await archivoToBase64(fotoDocente.archivo);
       console.log('✅ Foto convertida');
       
-      // 🔥 AGREGAR fechaRegistro al docenteData
       const docenteData = {
         ...formData,
         fotoBase64: fotoBase64,
         fotoNombre: fotoDocente.nombreArchivo,
-        fechaRegistro: new Date().toISOString() // 👈 AGREGADO
+        fechaRegistro: new Date().toISOString()
       }
       
       console.log('👤 Guardando docente en Firebase...');
@@ -413,7 +400,6 @@ const DocenteForm = () => {
         console.log('ℹ️ No hay certificaciones para guardar');
       }
 
-      // Guardar en Google Sheets
       console.log('📊 Guardando en Google Sheets...');
       await guardarEnGoogleSheets(docenteData);
       console.log('✅ Datos enviados a Google Sheets');
@@ -643,9 +629,307 @@ const DocenteForm = () => {
           </div>
         </div>
 
-        {/* Resto del código de certificaciones y botones... */}
-        {/* (El resto del JSX permanece igual) */}
-        
+        {/* ============================================ */}
+        {/* CERTIFICACIONES - MICROSOFT OFFICE 2019 */}
+        {/* ============================================ */}
+        <div className="form-section">
+          <h3>📄 Certificación Microsoft Office - 2019</h3>
+          <p className="enlace-certiport">Ingresar a <a href="https://www.certiport.com" target="_blank" rel="noopener noreferrer">www.certiport.com</a></p>
+          
+          <div className="certificaciones-grid">
+            {/* Word Asociado 2019 */}
+            <div className="certificacion-card">
+              <div className="certificacion-header">
+                <input
+                  type="checkbox"
+                  id="word_asociado_2019"
+                  checked={certificaciones.office2019.wordAsociado.seleccionado}
+                  onChange={() => handleCertificacionToggle('office2019', 'wordAsociado')}
+                />
+                <label htmlFor="word_asociado_2019" className="certificacion-label">
+                  Microsoft Word Asociado - 2019
+                </label>
+              </div>
+              {certificaciones.office2019.wordAsociado.seleccionado && (
+                <div className="certificacion-archivo">
+                  <input
+                    type="file"
+                    onChange={(e) => handleArchivoChange('office2019', 'wordAsociado', e)}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                  />
+                  {certificaciones.office2019.wordAsociado.nombreArchivo && (
+                    <small className="file-info">Archivo: {certificaciones.office2019.wordAsociado.nombreArchivo}</small>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Excel Asociado 2019 */}
+            <div className="certificacion-card">
+              <div className="certificacion-header">
+                <input
+                  type="checkbox"
+                  id="excel_asociado_2019"
+                  checked={certificaciones.office2019.excelAsociado.seleccionado}
+                  onChange={() => handleCertificacionToggle('office2019', 'excelAsociado')}
+                />
+                <label htmlFor="excel_asociado_2019" className="certificacion-label">
+                  Microsoft Excel Asociado - 2019
+                </label>
+              </div>
+              {certificaciones.office2019.excelAsociado.seleccionado && (
+                <div className="certificacion-archivo">
+                  <input
+                    type="file"
+                    onChange={(e) => handleArchivoChange('office2019', 'excelAsociado', e)}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                  />
+                  {certificaciones.office2019.excelAsociado.nombreArchivo && (
+                    <small className="file-info">Archivo: {certificaciones.office2019.excelAsociado.nombreArchivo}</small>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* PowerPoint Asociado 2019 */}
+            <div className="certificacion-card">
+              <div className="certificacion-header">
+                <input
+                  type="checkbox"
+                  id="powerpoint_asociado_2019"
+                  checked={certificaciones.office2019.powerpointAsociado.seleccionado}
+                  onChange={() => handleCertificacionToggle('office2019', 'powerpointAsociado')}
+                />
+                <label htmlFor="powerpoint_asociado_2019" className="certificacion-label">
+                  Microsoft PowerPoint Asociado - 2019
+                </label>
+              </div>
+              {certificaciones.office2019.powerpointAsociado.seleccionado && (
+                <div className="certificacion-archivo">
+                  <input
+                    type="file"
+                    onChange={(e) => handleArchivoChange('office2019', 'powerpointAsociado', e)}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                  />
+                  {certificaciones.office2019.powerpointAsociado.nombreArchivo && (
+                    <small className="file-info">Archivo: {certificaciones.office2019.powerpointAsociado.nombreArchivo}</small>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Word Expert 2019 */}
+            <div className="certificacion-card">
+              <div className="certificacion-header">
+                <input
+                  type="checkbox"
+                  id="word_expert_2019"
+                  checked={certificaciones.office2019.wordExpert.seleccionado}
+                  onChange={() => handleCertificacionToggle('office2019', 'wordExpert')}
+                />
+                <label htmlFor="word_expert_2019" className="certificacion-label">
+                  Microsoft Word Expert - 2019
+                </label>
+              </div>
+              {certificaciones.office2019.wordExpert.seleccionado && (
+                <div className="certificacion-archivo">
+                  <input
+                    type="file"
+                    onChange={(e) => handleArchivoChange('office2019', 'wordExpert', e)}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                  />
+                  {certificaciones.office2019.wordExpert.nombreArchivo && (
+                    <small className="file-info">Archivo: {certificaciones.office2019.wordExpert.nombreArchivo}</small>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Excel Expert 2019 */}
+            <div className="certificacion-card">
+              <div className="certificacion-header">
+                <input
+                  type="checkbox"
+                  id="excel_expert_2019"
+                  checked={certificaciones.office2019.excelExpert.seleccionado}
+                  onChange={() => handleCertificacionToggle('office2019', 'excelExpert')}
+                />
+                <label htmlFor="excel_expert_2019" className="certificacion-label">
+                  Microsoft Excel Expert - 2019
+                </label>
+              </div>
+              {certificaciones.office2019.excelExpert.seleccionado && (
+                <div className="certificacion-archivo">
+                  <input
+                    type="file"
+                    onChange={(e) => handleArchivoChange('office2019', 'excelExpert', e)}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                  />
+                  {certificaciones.office2019.excelExpert.nombreArchivo && (
+                    <small className="file-info">Archivo: {certificaciones.office2019.excelExpert.nombreArchivo}</small>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ============================================ */}
+        {/* CERTIFICACIONES - MICROSOFT OFFICE 365 */}
+        {/* ============================================ */}
+        <div className="form-section">
+          <h3>📄 Certificación Microsoft Office - 365</h3>
+          <p className="enlace-certiport">Ingresar a <a href="https://www.certiport.com" target="_blank" rel="noopener noreferrer">www.certiport.com</a></p>
+          
+          <div className="certificaciones-grid">
+            {/* Word Asociado 365 */}
+            <div className="certificacion-card">
+              <div className="certificacion-header">
+                <input
+                  type="checkbox"
+                  id="word_asociado_365"
+                  checked={certificaciones.office365.wordAsociado.seleccionado}
+                  onChange={() => handleCertificacionToggle('office365', 'wordAsociado')}
+                />
+                <label htmlFor="word_asociado_365" className="certificacion-label">
+                  Microsoft Word Asociado - 365
+                </label>
+              </div>
+              {certificaciones.office365.wordAsociado.seleccionado && (
+                <div className="certificacion-archivo">
+                  <input
+                    type="file"
+                    onChange={(e) => handleArchivoChange('office365', 'wordAsociado', e)}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                  />
+                  {certificaciones.office365.wordAsociado.nombreArchivo && (
+                    <small className="file-info">Archivo: {certificaciones.office365.wordAsociado.nombreArchivo}</small>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Excel Asociado 365 */}
+            <div className="certificacion-card">
+              <div className="certificacion-header">
+                <input
+                  type="checkbox"
+                  id="excel_asociado_365"
+                  checked={certificaciones.office365.excelAsociado.seleccionado}
+                  onChange={() => handleCertificacionToggle('office365', 'excelAsociado')}
+                />
+                <label htmlFor="excel_asociado_365" className="certificacion-label">
+                  Microsoft Excel Asociado - 365
+                </label>
+              </div>
+              {certificaciones.office365.excelAsociado.seleccionado && (
+                <div className="certificacion-archivo">
+                  <input
+                    type="file"
+                    onChange={(e) => handleArchivoChange('office365', 'excelAsociado', e)}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                  />
+                  {certificaciones.office365.excelAsociado.nombreArchivo && (
+                    <small className="file-info">Archivo: {certificaciones.office365.excelAsociado.nombreArchivo}</small>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* PowerPoint Asociado 365 */}
+            <div className="certificacion-card">
+              <div className="certificacion-header">
+                <input
+                  type="checkbox"
+                  id="powerpoint_asociado_365"
+                  checked={certificaciones.office365.powerpointAsociado.seleccionado}
+                  onChange={() => handleCertificacionToggle('office365', 'powerpointAsociado')}
+                />
+                <label htmlFor="powerpoint_asociado_365" className="certificacion-label">
+                  Microsoft PowerPoint Asociado - 365
+                </label>
+              </div>
+              {certificaciones.office365.powerpointAsociado.seleccionado && (
+                <div className="certificacion-archivo">
+                  <input
+                    type="file"
+                    onChange={(e) => handleArchivoChange('office365', 'powerpointAsociado', e)}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                  />
+                  {certificaciones.office365.powerpointAsociado.nombreArchivo && (
+                    <small className="file-info">Archivo: {certificaciones.office365.powerpointAsociado.nombreArchivo}</small>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Word Expert 365 */}
+            <div className="certificacion-card">
+              <div className="certificacion-header">
+                <input
+                  type="checkbox"
+                  id="word_expert_365"
+                  checked={certificaciones.office365.wordExpert.seleccionado}
+                  onChange={() => handleCertificacionToggle('office365', 'wordExpert')}
+                />
+                <label htmlFor="word_expert_365" className="certificacion-label">
+                  Microsoft Word Expert - 365
+                </label>
+              </div>
+              {certificaciones.office365.wordExpert.seleccionado && (
+                <div className="certificacion-archivo">
+                  <input
+                    type="file"
+                    onChange={(e) => handleArchivoChange('office365', 'wordExpert', e)}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                  />
+                  {certificaciones.office365.wordExpert.nombreArchivo && (
+                    <small className="file-info">Archivo: {certificaciones.office365.wordExpert.nombreArchivo}</small>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Excel Expert 365 */}
+            <div className="certificacion-card">
+              <div className="certificacion-header">
+                <input
+                  type="checkbox"
+                  id="excel_expert_365"
+                  checked={certificaciones.office365.excelExpert.seleccionado}
+                  onChange={() => handleCertificacionToggle('office365', 'excelExpert')}
+                />
+                <label htmlFor="excel_expert_365" className="certificacion-label">
+                  Microsoft Excel Expert - 365
+                </label>
+              </div>
+              {certificaciones.office365.excelExpert.seleccionado && (
+                <div className="certificacion-archivo">
+                  <input
+                    type="file"
+                    onChange={(e) => handleArchivoChange('office365', 'excelExpert', e)}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                  />
+                  {certificaciones.office365.excelExpert.nombreArchivo && (
+                    <small className="file-info">Archivo: {certificaciones.office365.excelExpert.nombreArchivo}</small>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ============================================ */}
+        {/* BOTONES DE ACCIÓN */}
+        {/* ============================================ */}
+        <div className="form-actions">
+          <button type="submit" className="btn-submit" disabled={loading}>
+            {loading ? '📥 Guardando...' : '✅ INSCRIBIR DOCENTE'}
+          </button>
+          <button type="button" onClick={resetFormulario} className="btn-reset" disabled={loading}>
+            🗑️ Limpiar Formulario
+          </button>
+        </div>
       </form>
     </div>
   )
