@@ -9,7 +9,7 @@ const DocentesFaltantes = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   // ⚠️ REEMPLAZA con tu URL de Google Apps Script
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxMHRznqs3IUJRIBifPx_tSD63r02H7n9-ESSAtkdVcrohiaWBnnW5vTIYPMwhXfn3n/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxkSmF3QOCHamoi9tjoLqJcfnJVAgWlBhGd2zBU14kRn2wXQiTiLm1QGjcXPH1lNOr9/exec';
 
   useEffect(() => {
     cargarDocentesFaltantes();
