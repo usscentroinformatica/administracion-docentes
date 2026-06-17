@@ -566,7 +566,7 @@ const DocenteForm = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="correo">Correo Electrónico *</label>
+            <label htmlFor="correo">Correo Institucional *</label>
             <input
               type="email"
               id="correo"
