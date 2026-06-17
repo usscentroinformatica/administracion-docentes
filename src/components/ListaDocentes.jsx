@@ -61,10 +61,17 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     };
   };
 
-  // Función para actualizar Google Sheets (funciona con CORS)
-  const actualizarGoogleSheets = async (docenteData, estadoCerts) => {
+  // Función para actualizar Google Sheets - VERSIÓN CORREGIDA
+const actualizarGoogleSheets = async (docenteData, estadoCerts) => {
   try {
+    // 🔥 IMPORTANTE: Obtener la fecha de registro
+    // Si el docente tiene fechaRegistro, usarla, si no, usar la fecha actual
+    const fechaRegistro = docenteData.fechaRegistro 
+      ? new Date(docenteData.fechaRegistro).toISOString() 
+      : new Date().toISOString();
+    
     const datosParaGoogle = {
+      fechaRegistro: fechaRegistro, // 👈 ¡AGREGADO!
       apellidos: docenteData.apellidos || '',
       nombres: docenteData.nombres || '',
       dni: docenteData.dni || '',
@@ -78,6 +85,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     };
     
     console.log('📤 Enviando a Google Sheets - DNI:', docenteData.dni);
+    console.log('📅 Fecha de registro:', fechaRegistro); // Para depuración
     
     // Usar sendBeacon - no tiene problemas de CORS
     const blob = new Blob([JSON.stringify(datosParaGoogle)], { type: 'application/json' });
