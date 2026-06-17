@@ -44,7 +44,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
   const [cargandoFaltantes, setCargandoFaltantes] = useState(false);
 
   // URL de tu Google Apps Script
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxPGHcFF_vyqnO1j6NQQMjq4Fqm51Y4I1BSGeRZ2RWyaKcpTFdPYCo9futOP7f6yteG/exec';
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxMHRznqs3IUJRIBifPx_tSD63r02H7n9-ESSAtkdVcrohiaWBnnW5vTIYPMwhXfn3n/exec';
   const GOOGLE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1GOJZQDx1XSpudu_80gok1Nuq9YzMvKkLR9fy-jYsyt0/edit';
 
   const abrirGoogleSheets = () => {
