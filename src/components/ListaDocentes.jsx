@@ -18,7 +18,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
   const [mensaje, setMensaje] = useState('');
   const [cargandoActualizacion, setCargandoActualizacion] = useState(false);
   
-  // Estados para certificaciones (como en DocenteForm)
+  // Estados para certificaciones
   const [certificaciones, setCertificaciones] = useState({
     office2019: {
       wordAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
@@ -37,12 +37,48 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
   });
   const [mostrarCertificaciones, setMostrarCertificaciones] = useState(false);
 
-  // URL de tu Google Apps Script (ACTUALIZADA)
+  // 👈 NUEVO: Estado para el switch (true = registrados, false = no registrados)
+  const [mostrarRegistrados, setMostrarRegistrados] = useState(true);
+  // 👈 NUEVO: Estado para docentes faltantes
+  const [docentesFaltantes, setDocentesFaltantes] = useState([]);
+  const [cargandoFaltantes, setCargandoFaltantes] = useState(false);
+
+  // URL de tu Google Apps Script
   const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxPGHcFF_vyqnO1j6NQQMjq4Fqm51Y4I1BSGeRZ2RWyaKcpTFdPYCo9futOP7f6yteG/exec';
   const GOOGLE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1GOJZQDx1XSpudu_80gok1Nuq9YzMvKkLR9fy-jYsyt0/edit';
 
   const abrirGoogleSheets = () => {
     window.open(GOOGLE_SHEETS_URL, '_blank');
+  };
+
+  // 👈 NUEVO: Función para obtener docentes faltantes desde Google Sheets
+  const cargarDocentesFaltantes = async () => {
+    setCargandoFaltantes(true);
+    try {
+      const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=obtenerFaltantes`);
+      const result = await response.json();
+      
+      if (result.success) {
+        setDocentesFaltantes(result.data);
+      } else {
+        console.error('Error al cargar docentes faltantes:', result.error);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setCargandoFaltantes(false);
+    }
+  };
+
+  // 👈 NUEVO: Función para alternar el switch
+  const toggleSwitch = () => {
+    const nuevoEstado = !mostrarRegistrados;
+    setMostrarRegistrados(nuevoEstado);
+    
+    // Si cambiamos a "No Registrados", cargar los datos
+    if (!nuevoEstado && docentesFaltantes.length === 0) {
+      cargarDocentesFaltantes();
+    }
   };
 
   // Función para obtener el estado actual de las certificaciones
@@ -61,48 +97,44 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     };
   };
 
-  // Función para actualizar Google Sheets - VERSIÓN CORREGIDA
-const actualizarGoogleSheets = async (docenteData, estadoCerts) => {
-  try {
-    // 🔥 IMPORTANTE: Obtener la fecha de registro
-    // Si el docente tiene fechaRegistro, usarla, si no, usar la fecha actual
-    const fechaRegistro = docenteData.fechaRegistro 
-      ? new Date(docenteData.fechaRegistro).toISOString() 
-      : new Date().toISOString();
-    
-    const datosParaGoogle = {
-      fechaRegistro: fechaRegistro, // 👈 ¡AGREGADO!
-      apellidos: docenteData.apellidos || '',
-      nombres: docenteData.nombres || '',
-      dni: docenteData.dni || '',
-      fechaNacimiento: docenteData.fechaNacimiento || '',
-      genero: docenteData.genero || '',
-      correo: docenteData.correo || '',
-      celular: docenteData.celular || '',
-      lugarResidencia: docenteData.lugarResidencia || '',
-      gradoMaestria: docenteData.gradoMaestria || '',
-      certificaciones: estadoCerts
-    };
-    
-    console.log('📤 Enviando a Google Sheets - DNI:', docenteData.dni);
-    console.log('📅 Fecha de registro:', fechaRegistro); // Para depuración
-    
-    // Usar sendBeacon - no tiene problemas de CORS
-    const blob = new Blob([JSON.stringify(datosParaGoogle)], { type: 'application/json' });
-    const enviado = navigator.sendBeacon(GOOGLE_SCRIPT_URL, blob);
-    
-    if (enviado) {
-      console.log('✅ Datos enviados correctamente a Google Sheets');
-    } else {
-      console.warn('⚠️ sendBeacon falló, pero puede que igual se envíe');
+  // Función para actualizar Google Sheets
+  const actualizarGoogleSheets = async (docenteData, estadoCerts) => {
+    try {
+      const fechaRegistro = docenteData.fechaRegistro 
+        ? new Date(docenteData.fechaRegistro).toISOString() 
+        : new Date().toISOString();
+      
+      const datosParaGoogle = {
+        fechaRegistro: fechaRegistro,
+        apellidos: docenteData.apellidos || '',
+        nombres: docenteData.nombres || '',
+        dni: docenteData.dni || '',
+        fechaNacimiento: docenteData.fechaNacimiento || '',
+        genero: docenteData.genero || '',
+        correo: docenteData.correo || '',
+        celular: docenteData.celular || '',
+        lugarResidencia: docenteData.lugarResidencia || '',
+        gradoMaestria: docenteData.gradoMaestria || '',
+        certificaciones: estadoCerts
+      };
+      
+      console.log('📤 Enviando a Google Sheets - DNI:', docenteData.dni);
+      
+      const blob = new Blob([JSON.stringify(datosParaGoogle)], { type: 'application/json' });
+      const enviado = navigator.sendBeacon(GOOGLE_SCRIPT_URL, blob);
+      
+      if (enviado) {
+        console.log('✅ Datos enviados correctamente a Google Sheets');
+      } else {
+        console.warn('⚠️ sendBeacon falló, pero puede que igual se envíe');
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('❌ Error:', error);
+      return false;
     }
-    
-    return true;
-  } catch (error) {
-    console.error('❌ Error:', error);
-    return false;
-  }
-};
+  };
 
   useEffect(() => {
     if (modo === 'docente' && docenteId) {
@@ -113,7 +145,7 @@ const actualizarGoogleSheets = async (docenteData, estadoCerts) => {
     }
   }, [modo, docenteId]);
 
-  // Cargar certificaciones al estado local (para edición)
+  // Cargar certificaciones al estado local
   const cargarCertificacionesState = async (id) => {
     try {
       const dbRef = ref(db);
@@ -127,7 +159,6 @@ const actualizarGoogleSheets = async (docenteData, estadoCerts) => {
           const cert = data[key];
           const nombre = cert.nombre || '';
           
-          // Office 2019
           if (nombre.includes('Word Asociado - 2019')) {
             nuevasCertificaciones.office2019.wordAsociado = { 
               seleccionado: true, 
@@ -169,7 +200,6 @@ const actualizarGoogleSheets = async (docenteData, estadoCerts) => {
             };
           }
           
-          // Office 365
           if (nombre.includes('Word Asociado - 365')) {
             nuevasCertificaciones.office365.wordAsociado = { 
               seleccionado: true, 
@@ -327,7 +357,6 @@ const actualizarGoogleSheets = async (docenteData, estadoCerts) => {
     setMensaje('');
     
     try {
-      // 1. Actualizar Firebase
       const docenteRef = ref(db, `docentes/${selectedDocente.id}`);
       await update(docenteRef, {
         celular: editandoDocente.celular,
@@ -341,7 +370,6 @@ const actualizarGoogleSheets = async (docenteData, estadoCerts) => {
       );
       setDocentes(nuevosDocentes);
       
-      // 2. Actualizar Google Sheets
       const estadoCerts = obtenerEstadoCertificaciones();
       await actualizarGoogleSheets(editandoDocente, estadoCerts);
       
@@ -356,7 +384,7 @@ const actualizarGoogleSheets = async (docenteData, estadoCerts) => {
     }
   };
 
-  // Funciones para certificaciones (como en DocenteForm)
+  // Funciones para certificaciones
   const handleCertificacionToggle = (categoria, tipo) => {
     setCertificaciones(prevState => ({
       ...prevState,
@@ -421,7 +449,6 @@ const actualizarGoogleSheets = async (docenteData, estadoCerts) => {
     setMensaje('');
     
     try {
-      // Guardar certificaciones en Firebase
       for (const [categoria, certificados] of Object.entries(certificaciones)) {
         for (const [tipo, datos] of Object.entries(certificados)) {
           if (datos.seleccionado && datos.archivo) {
@@ -442,7 +469,6 @@ const actualizarGoogleSheets = async (docenteData, estadoCerts) => {
         }
       }
       
-      // Actualizar Google Sheets con el nuevo estado de certificaciones
       const estadoCerts = obtenerEstadoCertificaciones();
       await actualizarGoogleSheets(selectedDocente, estadoCerts);
       
@@ -508,6 +534,13 @@ const actualizarGoogleSheets = async (docenteData, estadoCerts) => {
     'Microsoft Excel Expert - 365'
   ];
 
+  // 👈 NUEVO: Determinar qué lista mostrar
+  const docentesAMostrar = mostrarRegistrados ? docentes : docentesFaltantes;
+  const tituloLista = mostrarRegistrados 
+    ? `📚 Lista de Docentes Registrados (${docentes.length} registrados)`
+    : `📋 Docentes No Registrados (${docentesFaltantes.length} pendientes)`;
+  const isLoading = mostrarRegistrados ? loading : cargandoFaltantes;
+
   return (
     <>
       <div className="lista-docentes-overlay">
@@ -538,38 +571,85 @@ const actualizarGoogleSheets = async (docenteData, estadoCerts) => {
             <div className="lista-contenido">
               {modo === 'admin' && (
                 <div className="lista-docentes">
-                  <h4>📚 Lista de Docentes <span className="docentes-count">({docentes.length} registrados)</span></h4>
-                  {docentes.map(docente => (
-                    <div 
-                      key={docente.id} 
-                      className={`docente-item ${selectedDocente?.id === docente.id ? 'active' : ''}`}
-                      onClick={() => handleSelectDocente(docente)}
-                    >
-                      <div className="docente-item-foto">
-                        {docente.fotoBase64 ? (
-                          <img src={docente.fotoBase64} alt={docente.nombres} />
-                        ) : (
-                          <div className="foto-placeholder-mini">📷</div>
-                        )}
-                      </div>
-                      <div className="docente-item-info">
-                        <strong>{docente.apellidos} {docente.nombres}</strong>
-                        <small>DNI: {docente.dni}</small>
-                      </div>
+                  {/* 👈 NUEVO: Header con switch */}
+                  <div className="lista-header-switch">
+                    <h4>
+                      {tituloLista}
+                    </h4>
+                    <div className="switch-container">
+                      <span className={`switch-label ${!mostrarRegistrados ? 'active' : ''}`}>
+                        🔴 No Registrados
+                      </span>
+                      <button 
+                        className={`switch-toggle ${mostrarRegistrados ? 'active' : 'inactive'}`}
+                        onClick={toggleSwitch}
+                      >
+                        <div className="switch-slider">
+                          <div className="switch-thumb">
+                            {mostrarRegistrados ? '✅' : '⏳'}
+                          </div>
+                        </div>
+                      </button>
+                      <span className={`switch-label ${mostrarRegistrados ? 'active' : ''}`}>
+                        🟢 Registrados
+                      </span>
                     </div>
-                  ))}
+                  </div>
+
+                  {isLoading ? (
+                    <div className="loading-spinner">Cargando...</div>
+                  ) : docentesAMostrar.length === 0 ? (
+                    <div className="sin-docentes">
+                      {mostrarRegistrados 
+                        ? 'No hay docentes registrados' 
+                        : '🎉 ¡Todos los docentes están registrados!'}
+                    </div>
+                  ) : (
+                    <>
+                      {/* Mostrar lista según el switch */}
+                      {docentesAMostrar.map((docente, index) => (
+                        <div 
+                          key={mostrarRegistrados ? docente.id : `faltante-${index}`}
+                          className={`docente-item ${selectedDocente?.id === docente.id ? 'active' : ''}`}
+                          onClick={() => mostrarRegistrados && handleSelectDocente(docente)}
+                          style={!mostrarRegistrados ? { cursor: 'default' } : {}}
+                        >
+                          <div className="docente-item-foto">
+                            {mostrarRegistrados && docente.fotoBase64 ? (
+                              <img src={docente.fotoBase64} alt={docente.nombres} />
+                            ) : mostrarRegistrados ? (
+                              <div className="foto-placeholder-mini">📷</div>
+                            ) : (
+                              <div className="foto-placeholder-mini">👤</div>
+                            )}
+                          </div>
+                          <div className="docente-item-info">
+                            <strong>{mostrarRegistrados 
+                              ? `${docente.apellidos} ${docente.nombres}` 
+                              : docente.docente
+                            }</strong>
+                            <small>{mostrarRegistrados 
+                              ? `DNI: ${docente.dni}` 
+                              : `📧 ${docente.correo}`
+                            }</small>
+                          </div>
+                          {!mostrarRegistrados && (
+                            <div className="docente-item-estado">
+                              <span className="badge-pendiente">⏳ Pendiente</span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </>
+                  )}
                 </div>
               )}
 
-              {selectedDocente && (
+              {/* Mantener el detalle del docente seleccionado solo si está en modo admin y viendo registrados */}
+              {modo === 'admin' && mostrarRegistrados && selectedDocente && (
                 <div className="docente-detalle">
                   <div className="detalle-header">
                     <h4>📄 Información Personal</h4>
-                    {modo === 'docente' && !modoEdicion && (
-                      <button className="btn-editar-perfil" onClick={iniciarEdicion}>
-                        ✏️ Editar Datos
-                      </button>
-                    )}
                   </div>
                   
                   <div className="detalle-foto">
@@ -580,343 +660,46 @@ const actualizarGoogleSheets = async (docenteData, estadoCerts) => {
                     )}
                   </div>
 
-                  {modoEdicion ? (
-                    <div className="detalle-info-edicion">
-                      <div className="campo-edicion">
-                        <label>Apellidos:</label>
-                        <input type="text" value={editandoDocente?.apellidos || ''} disabled />
-                      </div>
-                      <div className="campo-edicion">
-                        <label>Nombres:</label>
-                        <input type="text" value={editandoDocente?.nombres || ''} disabled />
-                      </div>
-                      <div className="campo-edicion">
-                        <label>DNI:</label>
-                        <input type="text" value={editandoDocente?.dni || ''} disabled />
-                      </div>
-                      <div className="campo-edicion">
-                        <label>Correo:</label>
-                        <input type="email" name="correo" value={editandoDocente?.correo || ''} onChange={handleEditChange} />
-                      </div>
-                      <div className="campo-edicion">
-                        <label>Celular:</label>
-                        <input type="tel" name="celular" value={editandoDocente?.celular || ''} onChange={handleEditChange} maxLength="9" />
-                      </div>
-                      <div className="campo-edicion">
-                        <label>Residencia:</label>
-                        <input type="text" name="lugarResidencia" value={editandoDocente?.lugarResidencia || ''} onChange={handleEditChange} />
-                      </div>
-                      <div className="acciones-edicion">
-                        <button className="btn-guardar-edicion" onClick={guardarCambios} disabled={cargandoActualizacion}>
-                          {cargandoActualizacion ? 'Guardando...' : '💾 Guardar Cambios'}
-                        </button>
-                        <button className="btn-cancelar-edicion" onClick={cancelarEdicion}>
-                          ❌ Cancelar
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="detalle-info">
-                      <p><strong>Nombres:</strong> {selectedDocente.nombres}</p>
-                      <p><strong>Apellidos:</strong> {selectedDocente.apellidos}</p>
-                      <p><strong>DNI:</strong> {selectedDocente.dni}</p>
-                      <p><strong>Correo:</strong> {selectedDocente.correo}</p>
-                      <p><strong>Celular:</strong> {selectedDocente.celular}</p>
-                      <p><strong>Residencia:</strong> {selectedDocente.lugarResidencia}</p>
-                    </div>
-                  )}
+                  <div className="detalle-info">
+                    <p><strong>Nombres:</strong> {selectedDocente.nombres}</p>
+                    <p><strong>Apellidos:</strong> {selectedDocente.apellidos}</p>
+                    <p><strong>DNI:</strong> {selectedDocente.dni}</p>
+                    <p><strong>Correo:</strong> {selectedDocente.correo}</p>
+                    <p><strong>Celular:</strong> {selectedDocente.celular}</p>
+                    <p><strong>Residencia:</strong> {selectedDocente.lugarResidencia}</p>
+                  </div>
 
                   {/* Sección de Certificaciones */}
                   <div className="certificaciones-section">
                     <div className="certificaciones-header">
                       <h4>📜 Certificaciones</h4>
-                      {modo === 'docente' && !mostrarCertificaciones && (
-                        <button className="btn-agregar-cert" onClick={() => setMostrarCertificaciones(true)}>
-                          ➕ Agregar/Editar Certificaciones
-                        </button>
-                      )}
                     </div>
 
-                    {mostrarCertificaciones ? (
-                      <div className="certificaciones-edicion">
-                        {/* Office 2019 */}
-                        <div className="certificacion-grupo">
-                          <h5>Microsoft Office 2019</h5>
-                          <div className="certificaciones-grid">
-                            <div className="certificacion-card">
-                              <div className="certificacion-header">
-                                <input
-                                  type="checkbox"
-                                  checked={certificaciones.office2019.wordAsociado.seleccionado}
-                                  onChange={() => handleCertificacionToggle('office2019', 'wordAsociado')}
-                                />
-                                <label>Microsoft Word Asociado - 2019</label>
-                              </div>
-                              {certificaciones.office2019.wordAsociado.seleccionado && (
-                                <div className="certificacion-archivo">
-                                  <input
-                                    type="file"
-                                    onChange={(e) => handleArchivoChange('office2019', 'wordAsociado', e)}
-                                    accept=".pdf,.jpg,.jpeg,.png"
-                                  />
-                                  {certificaciones.office2019.wordAsociado.nombreArchivo && (
-                                    <small>Archivo: {certificaciones.office2019.wordAsociado.nombreArchivo}</small>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="certificacion-card">
-                              <div className="certificacion-header">
-                                <input
-                                  type="checkbox"
-                                  checked={certificaciones.office2019.excelAsociado.seleccionado}
-                                  onChange={() => handleCertificacionToggle('office2019', 'excelAsociado')}
-                                />
-                                <label>Microsoft Excel Asociado - 2019</label>
-                              </div>
-                              {certificaciones.office2019.excelAsociado.seleccionado && (
-                                <div className="certificacion-archivo">
-                                  <input
-                                    type="file"
-                                    onChange={(e) => handleArchivoChange('office2019', 'excelAsociado', e)}
-                                    accept=".pdf,.jpg,.jpeg,.png"
-                                  />
-                                  {certificaciones.office2019.excelAsociado.nombreArchivo && (
-                                    <small>Archivo: {certificaciones.office2019.excelAsociado.nombreArchivo}</small>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="certificacion-card">
-                              <div className="certificacion-header">
-                                <input
-                                  type="checkbox"
-                                  checked={certificaciones.office2019.powerpointAsociado.seleccionado}
-                                  onChange={() => handleCertificacionToggle('office2019', 'powerpointAsociado')}
-                                />
-                                <label>Microsoft PowerPoint Asociado - 2019</label>
-                              </div>
-                              {certificaciones.office2019.powerpointAsociado.seleccionado && (
-                                <div className="certificacion-archivo">
-                                  <input
-                                    type="file"
-                                    onChange={(e) => handleArchivoChange('office2019', 'powerpointAsociado', e)}
-                                    accept=".pdf,.jpg,.jpeg,.png"
-                                  />
-                                  {certificaciones.office2019.powerpointAsociado.nombreArchivo && (
-                                    <small>Archivo: {certificaciones.office2019.powerpointAsociado.nombreArchivo}</small>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="certificacion-card">
-                              <div className="certificacion-header">
-                                <input
-                                  type="checkbox"
-                                  checked={certificaciones.office2019.wordExpert.seleccionado}
-                                  onChange={() => handleCertificacionToggle('office2019', 'wordExpert')}
-                                />
-                                <label>Microsoft Word Expert - 2019</label>
-                              </div>
-                              {certificaciones.office2019.wordExpert.seleccionado && (
-                                <div className="certificacion-archivo">
-                                  <input
-                                    type="file"
-                                    onChange={(e) => handleArchivoChange('office2019', 'wordExpert', e)}
-                                    accept=".pdf,.jpg,.jpeg,.png"
-                                  />
-                                  {certificaciones.office2019.wordExpert.nombreArchivo && (
-                                    <small>Archivo: {certificaciones.office2019.wordExpert.nombreArchivo}</small>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="certificacion-card">
-                              <div className="certificacion-header">
-                                <input
-                                  type="checkbox"
-                                  checked={certificaciones.office2019.excelExpert.seleccionado}
-                                  onChange={() => handleCertificacionToggle('office2019', 'excelExpert')}
-                                />
-                                <label>Microsoft Excel Expert - 2019</label>
-                              </div>
-                              {certificaciones.office2019.excelExpert.seleccionado && (
-                                <div className="certificacion-archivo">
-                                  <input
-                                    type="file"
-                                    onChange={(e) => handleArchivoChange('office2019', 'excelExpert', e)}
-                                    accept=".pdf,.jpg,.jpeg,.png"
-                                  />
-                                  {certificaciones.office2019.excelExpert.nombreArchivo && (
-                                    <small>Archivo: {certificaciones.office2019.excelExpert.nombreArchivo}</small>
-                                  )}
-                                </div>
-                              )}
-                            </div>
+                    <div className="certificaciones-lista">
+                      {certificadosList.map(cert => {
+                        const certificadoData = certificacionesDetalle.find(c => c.nombre === cert);
+                        const tieneCertificado = !!certificacionesMap[cert];
+                        
+                        return (
+                          <div key={cert} className="cert-item">
+                            <span className={`check-icon ${tieneCertificado ? 'checked' : 'unchecked'}`}>
+                              {tieneCertificado ? '✅' : '❌'}
+                            </span>
+                            <span className={`cert-nombre ${tieneCertificado ? 'completado' : 'pendiente'}`}>
+                              {cert}
+                            </span>
+                            {tieneCertificado && certificadoData?.archivoBase64 && (
+                              <button 
+                                className="btn-ver-pdf"
+                                onClick={() => verArchivo(certificadoData.archivoBase64, cert)}
+                              >
+                                📄 Ver Certificado
+                              </button>
+                            )}
                           </div>
-                        </div>
-
-                        {/* Office 365 */}
-                        <div className="certificacion-grupo">
-                          <h5>Microsoft Office 365</h5>
-                          <div className="certificaciones-grid">
-                            <div className="certificacion-card">
-                              <div className="certificacion-header">
-                                <input
-                                  type="checkbox"
-                                  checked={certificaciones.office365.wordAsociado.seleccionado}
-                                  onChange={() => handleCertificacionToggle('office365', 'wordAsociado')}
-                                />
-                                <label>Microsoft Word Asociado - 365</label>
-                              </div>
-                              {certificaciones.office365.wordAsociado.seleccionado && (
-                                <div className="certificacion-archivo">
-                                  <input
-                                    type="file"
-                                    onChange={(e) => handleArchivoChange('office365', 'wordAsociado', e)}
-                                    accept=".pdf,.jpg,.jpeg,.png"
-                                  />
-                                  {certificaciones.office365.wordAsociado.nombreArchivo && (
-                                    <small>Archivo: {certificaciones.office365.wordAsociado.nombreArchivo}</small>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="certificacion-card">
-                              <div className="certificacion-header">
-                                <input
-                                  type="checkbox"
-                                  checked={certificaciones.office365.excelAsociado.seleccionado}
-                                  onChange={() => handleCertificacionToggle('office365', 'excelAsociado')}
-                                />
-                                <label>Microsoft Excel Asociado - 365</label>
-                              </div>
-                              {certificaciones.office365.excelAsociado.seleccionado && (
-                                <div className="certificacion-archivo">
-                                  <input
-                                    type="file"
-                                    onChange={(e) => handleArchivoChange('office365', 'excelAsociado', e)}
-                                    accept=".pdf,.jpg,.jpeg,.png"
-                                  />
-                                  {certificaciones.office365.excelAsociado.nombreArchivo && (
-                                    <small>Archivo: {certificaciones.office365.excelAsociado.nombreArchivo}</small>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="certificacion-card">
-                              <div className="certificacion-header">
-                                <input
-                                  type="checkbox"
-                                  checked={certificaciones.office365.powerpointAsociado.seleccionado}
-                                  onChange={() => handleCertificacionToggle('office365', 'powerpointAsociado')}
-                                />
-                                <label>Microsoft PowerPoint Asociado - 365</label>
-                              </div>
-                              {certificaciones.office365.powerpointAsociado.seleccionado && (
-                                <div className="certificacion-archivo">
-                                  <input
-                                    type="file"
-                                    onChange={(e) => handleArchivoChange('office365', 'powerpointAsociado', e)}
-                                    accept=".pdf,.jpg,.jpeg,.png"
-                                  />
-                                  {certificaciones.office365.powerpointAsociado.nombreArchivo && (
-                                    <small>Archivo: {certificaciones.office365.powerpointAsociado.nombreArchivo}</small>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="certificacion-card">
-                              <div className="certificacion-header">
-                                <input
-                                  type="checkbox"
-                                  checked={certificaciones.office365.wordExpert.seleccionado}
-                                  onChange={() => handleCertificacionToggle('office365', 'wordExpert')}
-                                />
-                                <label>Microsoft Word Expert - 365</label>
-                              </div>
-                              {certificaciones.office365.wordExpert.seleccionado && (
-                                <div className="certificacion-archivo">
-                                  <input
-                                    type="file"
-                                    onChange={(e) => handleArchivoChange('office365', 'wordExpert', e)}
-                                    accept=".pdf,.jpg,.jpeg,.png"
-                                  />
-                                  {certificaciones.office365.wordExpert.nombreArchivo && (
-                                    <small>Archivo: {certificaciones.office365.wordExpert.nombreArchivo}</small>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="certificacion-card">
-                              <div className="certificacion-header">
-                                <input
-                                  type="checkbox"
-                                  checked={certificaciones.office365.excelExpert.seleccionado}
-                                  onChange={() => handleCertificacionToggle('office365', 'excelExpert')}
-                                />
-                                <label>Microsoft Excel Expert - 365</label>
-                              </div>
-                              {certificaciones.office365.excelExpert.seleccionado && (
-                                <div className="certificacion-archivo">
-                                  <input
-                                    type="file"
-                                    onChange={(e) => handleArchivoChange('office365', 'excelExpert', e)}
-                                    accept=".pdf,.jpg,.jpeg,.png"
-                                  />
-                                  {certificaciones.office365.excelExpert.nombreArchivo && (
-                                    <small>Archivo: {certificaciones.office365.excelExpert.nombreArchivo}</small>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="acciones-certificaciones">
-                          <button className="btn-guardar-cert" onClick={guardarCertificacionesDocente} disabled={cargandoActualizacion}>
-                            {cargandoActualizacion ? 'Guardando...' : '💾 Guardar Certificaciones'}
-                          </button>
-                          <button className="btn-cancelar-cert" onClick={() => setMostrarCertificaciones(false)}>
-                            ❌ Cancelar
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="certificaciones-lista">
-                        {certificadosList.map(cert => {
-                          const certificadoData = certificacionesDetalle.find(c => c.nombre === cert);
-                          const tieneCertificado = !!certificacionesMap[cert];
-                          
-                          return (
-                            <div key={cert} className="cert-item">
-                              <span className={`check-icon ${tieneCertificado ? 'checked' : 'unchecked'}`}>
-                                {tieneCertificado ? '✅' : '❌'}
-                              </span>
-                              <span className={`cert-nombre ${tieneCertificado ? 'completado' : 'pendiente'}`}>
-                                {cert}
-                              </span>
-                              {tieneCertificado && certificadoData?.archivoBase64 && (
-                                <button 
-                                  className="btn-ver-pdf"
-                                  onClick={() => verArchivo(certificadoData.archivoBase64, cert)}
-                                >
-                                  📄 Ver Certificado
-                                </button>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               )}
