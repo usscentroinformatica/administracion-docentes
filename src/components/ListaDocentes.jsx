@@ -37,9 +37,9 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
   });
   const [mostrarCertificaciones, setMostrarCertificaciones] = useState(false);
 
-  // 👈 NUEVO: Estado para el switch (true = registrados, false = no registrados)
+  // 👈 Estado para el switch (true = registrados, false = no registrados)
   const [mostrarRegistrados, setMostrarRegistrados] = useState(true);
-  // 👈 NUEVO: Estado para docentes faltantes
+  // 👈 Estado para docentes faltantes
   const [docentesFaltantes, setDocentesFaltantes] = useState([]);
   const [cargandoFaltantes, setCargandoFaltantes] = useState(false);
 
@@ -51,7 +51,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     window.open(GOOGLE_SHEETS_URL, '_blank');
   };
 
-  // 👈 NUEVO: Función para obtener docentes faltantes desde Google Sheets
+  // 👈 Función para obtener docentes faltantes desde Google Sheets
   const cargarDocentesFaltantes = async () => {
     setCargandoFaltantes(true);
     try {
@@ -70,7 +70,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     }
   };
 
-  // 👈 NUEVO: Función para alternar el switch
+  // 👈 Función para alternar el switch
   const toggleSwitch = () => {
     const nuevoEstado = !mostrarRegistrados;
     setMostrarRegistrados(nuevoEstado);
@@ -84,16 +84,16 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
   // Función para obtener el estado actual de las certificaciones
   const obtenerEstadoCertificaciones = () => {
     return {
-      word2019Asociado: certificaciones.office2019.wordAsociado.seleccionado ? '✅' : '❌',
-      excel2019Asociado: certificaciones.office2019.excelAsociado.seleccionado ? '✅' : '❌',
-      ppt2019Asociado: certificaciones.office2019.powerpointAsociado.seleccionado ? '✅' : '❌',
-      word2019Expert: certificaciones.office2019.wordExpert.seleccionado ? '✅' : '❌',
-      excel2019Expert: certificaciones.office2019.excelExpert.seleccionado ? '✅' : '❌',
-      word365Asociado: certificaciones.office365.wordAsociado.seleccionado ? '✅' : '❌',
-      excel365Asociado: certificaciones.office365.excelAsociado.seleccionado ? '✅' : '❌',
-      ppt365Asociado: certificaciones.office365.powerpointAsociado.seleccionado ? '✅' : '❌',
-      word365Expert: certificaciones.office365.wordExpert.seleccionado ? '✅' : '❌',
-      excel365Expert: certificaciones.office365.excelExpert.seleccionado ? '✅' : '❌'
+      word2019Asociado: certificaciones.office2019.wordAsociado.seleccionado ? 'Sí' : 'No',
+      excel2019Asociado: certificaciones.office2019.excelAsociado.seleccionado ? 'Sí' : 'No',
+      ppt2019Asociado: certificaciones.office2019.powerpointAsociado.seleccionado ? 'Sí' : 'No',
+      word2019Expert: certificaciones.office2019.wordExpert.seleccionado ? 'Sí' : 'No',
+      excel2019Expert: certificaciones.office2019.excelExpert.seleccionado ? 'Sí' : 'No',
+      word365Asociado: certificaciones.office365.wordAsociado.seleccionado ? 'Sí' : 'No',
+      excel365Asociado: certificaciones.office365.excelAsociado.seleccionado ? 'Sí' : 'No',
+      ppt365Asociado: certificaciones.office365.powerpointAsociado.seleccionado ? 'Sí' : 'No',
+      word365Expert: certificaciones.office365.wordExpert.seleccionado ? 'Sí' : 'No',
+      excel365Expert: certificaciones.office365.excelExpert.seleccionado ? 'Sí' : 'No'
     };
   };
 
@@ -534,10 +534,10 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     'Microsoft Excel Expert - 365'
   ];
 
-  // 👈 NUEVO: Determinar qué lista mostrar
+  // Determinar qué lista mostrar
   const docentesAMostrar = mostrarRegistrados ? docentes : docentesFaltantes;
   const tituloLista = mostrarRegistrados 
-    ? `📚 Lista de Docentes Registrados (${docentes.length} registrados)`
+    ? `📚 Lista de Docentes (${docentes.length} registrados)`
     : `📋 Docentes No Registrados (${docentesFaltantes.length} pendientes)`;
   const isLoading = mostrarRegistrados ? loading : cargandoFaltantes;
 
@@ -571,14 +571,12 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
             <div className="lista-contenido">
               {modo === 'admin' && (
                 <div className="lista-docentes">
-                  {/* 👈 NUEVO: Header con switch */}
+                  {/* Header con switch */}
                   <div className="lista-header-switch">
-                    <h4>
-                      {tituloLista}
-                    </h4>
+                    <h4>{tituloLista}</h4>
                     <div className="switch-container">
                       <span className={`switch-label ${!mostrarRegistrados ? 'active' : ''}`}>
-                        🔴 No Registrados
+                        🔴 Pendientes
                       </span>
                       <button 
                         className={`switch-toggle ${mostrarRegistrados ? 'active' : 'inactive'}`}
@@ -606,7 +604,6 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                     </div>
                   ) : (
                     <>
-                      {/* Mostrar lista según el switch */}
                       {docentesAMostrar.map((docente, index) => (
                         <div 
                           key={mostrarRegistrados ? docente.id : `faltante-${index}`}
@@ -624,14 +621,18 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                             )}
                           </div>
                           <div className="docente-item-info">
-                            <strong>{mostrarRegistrados 
-                              ? `${docente.apellidos} ${docente.nombres}` 
-                              : docente.docente
-                            }</strong>
-                            <small>{mostrarRegistrados 
-                              ? `DNI: ${docente.dni}` 
-                              : `📧 ${docente.correo}`
-                            }</small>
+                            <strong>
+                              {mostrarRegistrados 
+                                ? `${docente.apellidos} ${docente.nombres}` 
+                                : docente.docente || `${docente.apellidos} ${docente.nombres}`
+                              }
+                            </strong>
+                            <small>
+                              {mostrarRegistrados 
+                                ? `DNI: ${docente.dni}` 
+                                : `📧 ${docente.correo}`
+                              }
+                            </small>
                           </div>
                           {!mostrarRegistrados && (
                             <div className="docente-item-estado">
@@ -645,7 +646,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                 </div>
               )}
 
-              {/* Mantener el detalle del docente seleccionado solo si está en modo admin y viendo registrados */}
+              {/* Detalle del docente seleccionado solo en modo admin y viendo registrados */}
               {modo === 'admin' && mostrarRegistrados && selectedDocente && (
                 <div className="docente-detalle">
                   <div className="detalle-header">
