@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import DocenteForm from './components/DocenteForm';
 import ListaDocentes from './components/ListaDocentes';
-import DocentesFaltantes from './components/DocentesFaltantes'; // 👈 NUEVO IMPORT
 import { verificarPasswordAdmin } from './firebase/authService';
 import { db } from './firebase/config';
 import { ref, get, child } from 'firebase/database';
@@ -11,7 +10,6 @@ import './App.css';
 function App() {
   const [panelAbierto, setPanelAbierto] = useState(false);
   const [mostrarLista, setMostrarLista] = useState(false);
-  const [mostrarFaltantes, setMostrarFaltantes] = useState(false); // 👈 NUEVO ESTADO
   const [docenteLogueado, setDocenteLogueado] = useState(null);
   
   const [inputValue, setInputValue] = useState('');
@@ -49,7 +47,6 @@ function App() {
     setError('');
 
     try {
-      // Primero verificar si es DNI de docente
       const dbRef = ref(db);
       const snapshot = await get(child(dbRef, 'docentes'));
       
@@ -67,7 +64,6 @@ function App() {
         }
         
         if (docenteEncontrado) {
-          // Es un docente
           const sessionData = {
             id: docenteId,
             nombres: docenteEncontrado.nombres,
@@ -89,7 +85,6 @@ function App() {
         }
       }
       
-      // Si no es DNI de docente, verificar contraseña de administrador
       const resultado = await verificarPasswordAdmin(inputValue);
       
       if (resultado.success) {
@@ -114,7 +109,6 @@ function App() {
     }
   };
 
-  // Si hay un docente logueado, mostrar su perfil
   if (docenteLogueado) {
     return (
       <ListaDocentes 
@@ -132,14 +126,7 @@ function App() {
     <div className="app">
       <DocenteForm />
       
-      {/* 👈 NUEVO BOTÓN FLOTANTE PARA VER DOCENTES FALTANTES */}
-      <button 
-        className="btn-flotante-faltantes" 
-        onClick={() => setMostrarFaltantes(!mostrarFaltantes)}
-      >
-        📋
-      </button>
-      
+      {/* SOLO EL MENÚ HAMBURGUESA - SIN OTROS BOTONES */}
       <button className="btn-flotante" onClick={togglePanel}>
         ☰
       </button>
@@ -176,22 +163,6 @@ function App() {
           onClose={() => setMostrarLista(false)} 
           modo="admin"
         />
-      )}
-
-      {/* 👈 NUEVO: Mostrar docentes faltantes */}
-      {mostrarFaltantes && (
-        <div className="modal-faltantes">
-          <div className="modal-faltantes-overlay" onClick={() => setMostrarFaltantes(false)}></div>
-          <div className="modal-faltantes-content">
-            <button 
-              className="btn-cerrar-modal" 
-              onClick={() => setMostrarFaltantes(false)}
-            >
-              ✕
-            </button>
-            <DocentesFaltantes />
-          </div>
-        </div>
       )}
     </div>
   );
