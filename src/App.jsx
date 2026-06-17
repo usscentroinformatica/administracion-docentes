@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import DocenteForm from './components/DocenteForm';
 import ListaDocentes from './components/ListaDocentes';
-import DocentesFaltantes from './components/DocentesFaltantes'; // 👈 NUEVO IMPORT
+import DocentesFaltantes from './components/DocentesFaltantes';
 import { verificarPasswordAdmin } from './firebase/authService';
 import { db } from './firebase/config';
 import { ref, get, child } from 'firebase/database';
@@ -11,12 +11,15 @@ import './App.css';
 function App() {
   const [panelAbierto, setPanelAbierto] = useState(false);
   const [mostrarLista, setMostrarLista] = useState(false);
-  const [mostrarFaltantes, setMostrarFaltantes] = useState(false); // 👈 NUEVO ESTADO
+  const [mostrarFaltantes, setMostrarFaltantes] = useState(false);
   const [docenteLogueado, setDocenteLogueado] = useState(null);
   
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState('');
   const [verificando, setVerificando] = useState(false);
+
+  // 👈 NUEVO: Estado para el switch (true = registrados, false = no registrados)
+  const [mostrarRegistrados, setMostrarRegistrados] = useState(true);
 
   useEffect(() => {
     const docenteSession = localStorage.getItem('docenteSession');
@@ -49,7 +52,6 @@ function App() {
     setError('');
 
     try {
-      // Primero verificar si es DNI de docente
       const dbRef = ref(db);
       const snapshot = await get(child(dbRef, 'docentes'));
       
@@ -67,7 +69,6 @@ function App() {
         }
         
         if (docenteEncontrado) {
-          // Es un docente
           const sessionData = {
             id: docenteId,
             nombres: docenteEncontrado.nombres,
@@ -89,7 +90,6 @@ function App() {
         }
       }
       
-      // Si no es DNI de docente, verificar contraseña de administrador
       const resultado = await verificarPasswordAdmin(inputValue);
       
       if (resultado.success) {
@@ -114,6 +114,19 @@ function App() {
     }
   };
 
+  // 👈 NUEVO: Función para alternar el switch
+  const toggleSwitch = () => {
+    setMostrarRegistrados(!mostrarRegistrados);
+    // Si estamos mostrando registrados, ocultar faltantes y viceversa
+    if (mostrarRegistrados) {
+      setMostrarFaltantes(true);
+      setMostrarLista(false);
+    } else {
+      setMostrarFaltantes(false);
+      setMostrarLista(true);
+    }
+  };
+
   // Si hay un docente logueado, mostrar su perfil
   if (docenteLogueado) {
     return (
@@ -132,13 +145,26 @@ function App() {
     <div className="app">
       <DocenteForm />
       
-      {/* 👈 NUEVO BOTÓN FLOTANTE PARA VER DOCENTES FALTANTES */}
-      <button 
-        className="btn-flotante-faltantes" 
-        onClick={() => setMostrarFaltantes(!mostrarFaltantes)}
-      >
-        📋
-      </button>
+      {/* 👈 NUEVO: Switch flotante */}
+      <div className="switch-flotante-container">
+        <div className="switch-label">
+          <span className="label-text">📋 {mostrarRegistrados ? 'Registrados' : 'Pendientes'}</span>
+        </div>
+        <button 
+          className={`switch-flotante ${mostrarRegistrados ? 'activo' : 'inactivo'}`}
+          onClick={toggleSwitch}
+        >
+          <div className="switch-track">
+            <div className="switch-thumb">
+              {mostrarRegistrados ? '✅' : '⏳'}
+            </div>
+          </div>
+        </button>
+        <div className="switch-indicadores">
+          <span className={`indicador ${mostrarRegistrados ? 'activo' : ''}`}>🟢</span>
+          <span className={`indicador ${!mostrarRegistrados ? 'activo' : ''}`}>🔴</span>
+        </div>
+      </div>
       
       <button className="btn-flotante" onClick={togglePanel}>
         ☰
@@ -171,6 +197,7 @@ function App() {
         </div>
       </div>
 
+      {/* Mostrar lista de registrados o pendientes según el switch */}
       {mostrarLista && (
         <ListaDocentes 
           onClose={() => setMostrarLista(false)} 
@@ -178,7 +205,6 @@ function App() {
         />
       )}
 
-      {/* 👈 NUEVO: Mostrar docentes faltantes */}
       {mostrarFaltantes && (
         <div className="modal-faltantes">
           <div className="modal-faltantes-overlay" onClick={() => setMostrarFaltantes(false)}></div>
