@@ -800,5 +800,158 @@
   }
 }
 
+/* ============================================
+   ESTILOS PARA MODO EDICIÓN - AGREGAR AL FINAL
+   ============================================ */
+
+/* Estilos para el modo edición de datos personales */
+.detalle-info-edicion {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  padding: 15px 0;
+}
+
+.campo-edicion {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.campo-edicion label {
+  font-weight: 600;
+  font-size: 14px;
+  color: #2c3e50;
+}
+
+.campo-edicion input,
+.campo-edicion select {
+  padding: 8px 12px;
+  border: 2px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.3s;
+  background: white;
+}
+
+.campo-edicion input:focus,
+.campo-edicion select:focus {
+  outline: none;
+  border-color: #5a2290;
+}
+
+.campo-edicion input:disabled {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+}
+
+.hint-text {
+  font-size: 12px;
+  color: #6c757d;
+  margin-top: 2px;
+}
+
+.acciones-edicion {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  justify-content: flex-end;
+}
+
+.btn-guardar-edicion {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-guardar-edicion:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-guardar-edicion:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-cancelar-edicion {
+  padding: 10px 24px;
+  background: #f8f9fa;
+  color: #dc3545;
+  border: 2px solid #dc3545;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-cancelar-edicion:hover:not(:disabled) {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-cancelar-edicion:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-cancelar-edicion-header {
+  background: none;
+  border: none;
+  color: #dc3545;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 5px 10px;
+  transition: all 0.3s;
+}
+
+.btn-cancelar-edicion-header:hover {
+  color: #bd2130;
+  transform: scale(1.05);
+}
+
+/* Estilos para el botón editar perfil */
+.btn-editar-perfil {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-editar-perfil:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+
+/* Responsive para edición */
+@media (max-width: 768px) {
+  .detalle-info-edicion {
+    grid-template-columns: 1fr;
+  }
+  
+  .acciones-edicion {
+    flex-direction: column;
+  }
+  
+  .btn-guardar-edicion,
+  .btn-cancelar-edicion {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+
+
 
 
