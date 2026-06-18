@@ -135,6 +135,37 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     }
   };
 
+  // ============================================
+  // NUEVA FUNCIÓN: Limpiar selección de docente
+  // ============================================
+  const limpiarSeleccionDocente = () => {
+    setSelectedDocente(null);
+    setCertificacionesMap({});
+    setCertificacionesDetalle([]);
+    setModoEdicion(false);
+    setEditandoDocente(null);
+    setMostrarCertificaciones(false);
+    setMensaje('');
+    
+    // Resetear el estado de certificaciones a su valor inicial
+    setCertificaciones({
+      office2019: {
+        wordAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
+        excelAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
+        powerpointAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
+        wordExpert: { seleccionado: false, archivo: null, nombreArchivo: '' },
+        excelExpert: { seleccionado: false, archivo: null, nombreArchivo: '' }
+      },
+      office365: {
+        wordAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
+        excelAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
+        powerpointAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
+        wordExpert: { seleccionado: false, archivo: null, nombreArchivo: '' },
+        excelExpert: { seleccionado: false, archivo: null, nombreArchivo: '' }
+      }
+    });
+  };
+
   useEffect(() => {
     if (modo === 'docente' && docenteId) {
       cargarDocenteUnico(docenteId);
@@ -144,20 +175,48 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     }
   }, [modo, docenteId]);
 
-  // Cargar certificaciones al estado local
+  // Limpiar cuando se desmonta el componente
+  useEffect(() => {
+    return () => {
+      limpiarSeleccionDocente();
+    };
+  }, []);
+
+  // ============================================
+  // MODIFICADA: Cargar certificaciones al estado local
+  // ============================================
   const cargarCertificacionesState = async (id) => {
     try {
       const dbRef = ref(db);
       const snapshot = await get(child(dbRef, `certificaciones/${id}`));
       
+      // Crear un nuevo objeto de certificaciones con todos los valores en false
+      const nuevasCertificaciones = {
+        office2019: {
+          wordAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
+          excelAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
+          powerpointAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
+          wordExpert: { seleccionado: false, archivo: null, nombreArchivo: '' },
+          excelExpert: { seleccionado: false, archivo: null, nombreArchivo: '' }
+        },
+        office365: {
+          wordAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
+          excelAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
+          powerpointAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
+          wordExpert: { seleccionado: false, archivo: null, nombreArchivo: '' },
+          excelExpert: { seleccionado: false, archivo: null, nombreArchivo: '' }
+        }
+      };
+      
       if (snapshot.exists()) {
         const data = snapshot.val();
-        const nuevasCertificaciones = { ...certificaciones };
         
+        // Mapear cada certificación a su estado
         for (const key in data) {
           const cert = data[key];
           const nombre = cert.nombre || '';
           
+          // Office 2019
           if (nombre.includes('Word Asociado - 2019')) {
             nuevasCertificaciones.office2019.wordAsociado = { 
               seleccionado: true, 
@@ -165,32 +224,28 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
               nombreArchivo: cert.nombreArchivo || '',
               archivoBase64: cert.archivoBase64 
             };
-          }
-          if (nombre.includes('Excel Asociado - 2019')) {
+          } else if (nombre.includes('Excel Asociado - 2019')) {
             nuevasCertificaciones.office2019.excelAsociado = { 
               seleccionado: true, 
               archivo: null, 
               nombreArchivo: cert.nombreArchivo || '',
               archivoBase64: cert.archivoBase64 
             };
-          }
-          if (nombre.includes('PowerPoint Asociado - 2019')) {
+          } else if (nombre.includes('PowerPoint Asociado - 2019')) {
             nuevasCertificaciones.office2019.powerpointAsociado = { 
               seleccionado: true, 
               archivo: null, 
               nombreArchivo: cert.nombreArchivo || '',
               archivoBase64: cert.archivoBase64 
             };
-          }
-          if (nombre.includes('Word Expert - 2019')) {
+          } else if (nombre.includes('Word Expert - 2019')) {
             nuevasCertificaciones.office2019.wordExpert = { 
               seleccionado: true, 
               archivo: null, 
               nombreArchivo: cert.nombreArchivo || '',
               archivoBase64: cert.archivoBase64 
             };
-          }
-          if (nombre.includes('Excel Expert - 2019')) {
+          } else if (nombre.includes('Excel Expert - 2019')) {
             nuevasCertificaciones.office2019.excelExpert = { 
               seleccionado: true, 
               archivo: null, 
@@ -198,40 +253,36 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
               archivoBase64: cert.archivoBase64 
             };
           }
-          
-          if (nombre.includes('Word Asociado - 365')) {
+          // Office 365
+          else if (nombre.includes('Word Asociado - 365')) {
             nuevasCertificaciones.office365.wordAsociado = { 
               seleccionado: true, 
               archivo: null, 
               nombreArchivo: cert.nombreArchivo || '',
               archivoBase64: cert.archivoBase64 
             };
-          }
-          if (nombre.includes('Excel Asociado - 365')) {
+          } else if (nombre.includes('Excel Asociado - 365')) {
             nuevasCertificaciones.office365.excelAsociado = { 
               seleccionado: true, 
               archivo: null, 
               nombreArchivo: cert.nombreArchivo || '',
               archivoBase64: cert.archivoBase64 
             };
-          }
-          if (nombre.includes('PowerPoint Asociado - 365')) {
+          } else if (nombre.includes('PowerPoint Asociado - 365')) {
             nuevasCertificaciones.office365.powerpointAsociado = { 
               seleccionado: true, 
               archivo: null, 
               nombreArchivo: cert.nombreArchivo || '',
               archivoBase64: cert.archivoBase64 
             };
-          }
-          if (nombre.includes('Word Expert - 365')) {
+          } else if (nombre.includes('Word Expert - 365')) {
             nuevasCertificaciones.office365.wordExpert = { 
               seleccionado: true, 
               archivo: null, 
               nombreArchivo: cert.nombreArchivo || '',
               archivoBase64: cert.archivoBase64 
             };
-          }
-          if (nombre.includes('Excel Expert - 365')) {
+          } else if (nombre.includes('Excel Expert - 365')) {
             nuevasCertificaciones.office365.excelExpert = { 
               seleccionado: true, 
               archivo: null, 
@@ -240,11 +291,13 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
             };
           }
         }
-        
-        setCertificaciones(nuevasCertificaciones);
       }
+      
+      // Establecer el nuevo estado (esto reemplazará completamente el anterior)
+      setCertificaciones(nuevasCertificaciones);
+      
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error al cargar certificaciones:', error);
     }
   };
 
@@ -307,6 +360,9 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     }
   };
 
+  // ============================================
+  // MODIFICADA: Cargar certificaciones del docente
+  // ============================================
   const cargarCertificacionesDocente = async (docenteId) => {
     try {
       const dbRef = ref(db);
@@ -323,21 +379,58 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
         certificadosList.forEach(cert => {
           certificadosMapObj[cert.nombre] = true;
         });
+        
         setCertificacionesMap(certificadosMapObj);
         setCertificacionesDetalle(certificadosList);
+        
+        // Actualizar también el estado de checkboxes
+        await cargarCertificacionesState(docenteId);
+        
       } else {
         setCertificacionesMap({});
         setCertificacionesDetalle([]);
+        
+        // Resetear checkboxes si no hay certificaciones
+        setCertificaciones({
+          office2019: {
+            wordAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
+            excelAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
+            powerpointAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
+            wordExpert: { seleccionado: false, archivo: null, nombreArchivo: '' },
+            excelExpert: { seleccionado: false, archivo: null, nombreArchivo: '' }
+          },
+          office365: {
+            wordAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
+            excelAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
+            powerpointAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
+            wordExpert: { seleccionado: false, archivo: null, nombreArchivo: '' },
+            excelExpert: { seleccionado: false, archivo: null, nombreArchivo: '' }
+          }
+        });
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error al cargar certificaciones:', error);
+      setCertificacionesMap({});
+      setCertificacionesDetalle([]);
     }
   };
 
+  // ============================================
+  // MODIFICADA: Seleccionar docente
+  // ============================================
   const handleSelectDocente = async (docente) => {
     if (modo === 'docente') return;
+    
+    // IMPORTANTE: Primero limpiar el estado actual
+    limpiarSeleccionDocente();
+    
+    // Luego seleccionar el nuevo docente
     setSelectedDocente(docente);
-    await cargarCertificacionesDocente(docente.id);
+    
+    // Cargar certificaciones con un pequeño delay para asegurar el renderizado
+    setTimeout(async () => {
+      await cargarCertificacionesDocente(docente.id);
+    }, 50);
   };
 
   // Funciones para edición de datos personales
@@ -674,7 +767,13 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
 
               {/* Detalle del docente - Visible en modo admin (al seleccionar) y en modo docente */}
               {selectedDocente && (modo === 'admin' || modo === 'docente') && (
-                <div className="docente-detalle">
+                // ============================================
+                // KEY ÚNICA PARA FORZAR RE-RENDER COMPLETO
+                // ============================================
+                <div 
+                  key={`docente-detalle-${selectedDocente.id}-${Date.now()}`}
+                  className="docente-detalle"
+                >
                   <div className="detalle-header">
                     <h4>📄 Información Personal</h4>
                     {/* Botón Editar - Solo visible en modo docente */}
@@ -693,7 +792,12 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                   
                   <div className="detalle-foto">
                     {selectedDocente.fotoBase64 ? (
-                      <img src={selectedDocente.fotoBase64} alt={selectedDocente.nombres} className="detalle-imagen" />
+                      <img 
+                        key={`foto-${selectedDocente.id}`}
+                        src={selectedDocente.fotoBase64} 
+                        alt={selectedDocente.nombres} 
+                        className="detalle-imagen" 
+                      />
                     ) : (
                       <div className="detalle-sin-foto">Sin foto</div>
                     )}
@@ -703,8 +807,8 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                     // ============================================
                     // MODO EDICIÓN - TODOS LOS CAMPOS EDITABLES
                     // ============================================
-                    <div className="detalle-info-edicion">
-                      <div className="campo-edicion">
+                    <div className="detalle-info-edicion" key={`edit-${selectedDocente.id}`}>
+                      <div className="campo-edicion" key={`apellidos-${selectedDocente.id}`}>
                         <label>Apellidos *</label>
                         <input 
                           type="text" 
@@ -715,7 +819,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                           required
                         />
                       </div>
-                      <div className="campo-edicion">
+                      <div className="campo-edicion" key={`nombres-${selectedDocente.id}`}>
                         <label>Nombres *</label>
                         <input 
                           type="text" 
@@ -726,7 +830,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                           required
                         />
                       </div>
-                      <div className="campo-edicion">
+                      <div className="campo-edicion" key={`dni-${selectedDocente.id}`}>
                         <label>DNI *</label>
                         <input 
                           type="text" 
@@ -737,7 +841,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                         />
                         <small className="hint-text">El DNI no se puede modificar</small>
                       </div>
-                      <div className="campo-edicion">
+                      <div className="campo-edicion" key={`fecha-${selectedDocente.id}`}>
                         <label>Fecha de Nacimiento *</label>
                         <input 
                           type="date" 
@@ -748,7 +852,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                           required
                         />
                       </div>
-                      <div className="campo-edicion">
+                      <div className="campo-edicion" key={`genero-${selectedDocente.id}`}>
                         <label>Género *</label>
                         <select 
                           name="genero" 
@@ -764,7 +868,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                           <option value="prefiero_no_decir">PREFIERO NO DECIR</option>
                         </select>
                       </div>
-                      <div className="campo-edicion">
+                      <div className="campo-edicion" key={`correo-${selectedDocente.id}`}>
                         <label>Correo Institucional *</label>
                         <input 
                           type="email" 
@@ -775,7 +879,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                           required
                         />
                       </div>
-                      <div className="campo-edicion">
+                      <div className="campo-edicion" key={`celular-${selectedDocente.id}`}>
                         <label>Celular *</label>
                         <input 
                           type="tel" 
@@ -788,7 +892,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                         />
                         <small className="hint-text">9 dígitos numéricos</small>
                       </div>
-                      <div className="campo-edicion">
+                      <div className="campo-edicion" key={`residencia-${selectedDocente.id}`}>
                         <label>Lugar de Residencia *</label>
                         <input 
                           type="text" 
@@ -799,7 +903,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                           required
                         />
                       </div>
-                      <div className="campo-edicion">
+                      <div className="campo-edicion" key={`maestria-${selectedDocente.id}`}>
                         <label>Grado de Maestría *</label>
                         <select 
                           name="gradoMaestria" 
@@ -828,21 +932,39 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                     // ============================================
                     // MODO VISUALIZACIÓN - MOSTRAR DATOS
                     // ============================================
-                    <div className="detalle-info">
-                      <p><strong>Nombres:</strong> {selectedDocente.nombres || 'No especificado'}</p>
-                      <p><strong>Apellidos:</strong> {selectedDocente.apellidos || 'No especificado'}</p>
-                      <p><strong>DNI:</strong> {selectedDocente.dni || 'No especificado'}</p>
-                      <p><strong>Fecha Nacimiento:</strong> {selectedDocente.fechaNacimiento || 'No especificado'}</p>
-                      <p><strong>Género:</strong> {selectedDocente.genero || 'No especificado'}</p>
-                      <p><strong>Correo:</strong> {selectedDocente.correo || 'No especificado'}</p>
-                      <p><strong>Celular:</strong> {selectedDocente.celular || 'No especificado'}</p>
-                      <p><strong>Residencia:</strong> {selectedDocente.lugarResidencia || 'No especificado'}</p>
-                      <p><strong>Grado Maestría:</strong> {selectedDocente.gradoMaestria || 'No especificado'}</p>
+                    <div className="detalle-info" key={`info-${selectedDocente.id}`}>
+                      <p key={`nombre-${selectedDocente.id}`}>
+                        <strong>Nombres:</strong> {selectedDocente.nombres || 'No especificado'}
+                      </p>
+                      <p key={`apellido-${selectedDocente.id}`}>
+                        <strong>Apellidos:</strong> {selectedDocente.apellidos || 'No especificado'}
+                      </p>
+                      <p key={`dni-${selectedDocente.id}`}>
+                        <strong>DNI:</strong> {selectedDocente.dni || 'No especificado'}
+                      </p>
+                      <p key={`fecha-${selectedDocente.id}`}>
+                        <strong>Fecha Nacimiento:</strong> {selectedDocente.fechaNacimiento || 'No especificado'}
+                      </p>
+                      <p key={`genero-${selectedDocente.id}`}>
+                        <strong>Género:</strong> {selectedDocente.genero || 'No especificado'}
+                      </p>
+                      <p key={`correo-${selectedDocente.id}`}>
+                        <strong>Correo:</strong> {selectedDocente.correo || 'No especificado'}
+                      </p>
+                      <p key={`celular-${selectedDocente.id}`}>
+                        <strong>Celular:</strong> {selectedDocente.celular || 'No especificado'}
+                      </p>
+                      <p key={`residencia-${selectedDocente.id}`}>
+                        <strong>Residencia:</strong> {selectedDocente.lugarResidencia || 'No especificado'}
+                      </p>
+                      <p key={`maestria-${selectedDocente.id}`}>
+                        <strong>Grado Maestría:</strong> {selectedDocente.gradoMaestria || 'No especificado'}
+                      </p>
                     </div>
                   )}
 
                   {/* Sección de Certificaciones - Visible en ambos modos */}
-                  <div className="certificaciones-section">
+                  <div className="certificaciones-section" key={`certs-${selectedDocente.id}`}>
                     <div className="certificaciones-header">
                       <h4>📜 Certificaciones</h4>
                       {modo === 'docente' && !mostrarCertificaciones && (
@@ -853,13 +975,13 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                     </div>
 
                     {mostrarCertificaciones ? (
-                      <div className="certificaciones-edicion">
+                      <div className="certificaciones-edicion" key={`edit-certs-${selectedDocente.id}`}>
                         {/* Office 2019 */}
                         <div className="certificacion-grupo">
                           <h5>Microsoft Office 2019</h5>
                           <div className="certificaciones-grid">
                             {Object.entries(certificaciones.office2019).map(([tipo, datos]) => (
-                              <div key={tipo} className="certificacion-card">
+                              <div key={`${selectedDocente.id}-2019-${tipo}`} className="certificacion-card">
                                 <div className="certificacion-header">
                                   <input
                                     type="checkbox"
@@ -890,7 +1012,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                           <h5>Microsoft Office 365</h5>
                           <div className="certificaciones-grid">
                             {Object.entries(certificaciones.office365).map(([tipo, datos]) => (
-                              <div key={tipo} className="certificacion-card">
+                              <div key={`${selectedDocente.id}-365-${tipo}`} className="certificacion-card">
                                 <div className="certificacion-header">
                                   <input
                                     type="checkbox"
@@ -926,13 +1048,13 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                         </div>
                       </div>
                     ) : (
-                      <div className="certificaciones-lista">
+                      <div className="certificaciones-lista" key={`view-certs-${selectedDocente.id}`}>
                         {certificadosList.map(cert => {
                           const certificadoData = certificacionesDetalle.find(c => c.nombre === cert);
                           const tieneCertificado = !!certificacionesMap[cert];
                           
                           return (
-                            <div key={cert} className="cert-item">
+                            <div key={`${selectedDocente.id}-${cert}`} className="cert-item">
                               <span className={`check-icon ${tieneCertificado ? 'checked' : 'unchecked'}`}>
                                 {tieneCertificado ? '✅' : '❌'}
                               </span>
