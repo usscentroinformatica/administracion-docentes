@@ -135,9 +135,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     }
   };
 
-  // ============================================
-  // NUEVA FUNCIÓN: Limpiar selección de docente
-  // ============================================
+  // Función para limpiar selección de docente
   const limpiarSeleccionDocente = () => {
     setSelectedDocente(null);
     setCertificacionesMap({});
@@ -147,7 +145,6 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     setMostrarCertificaciones(false);
     setMensaje('');
     
-    // Resetear el estado de certificaciones a su valor inicial
     setCertificaciones({
       office2019: {
         wordAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
@@ -175,22 +172,17 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     }
   }, [modo, docenteId]);
 
-  // Limpiar cuando se desmonta el componente
   useEffect(() => {
     return () => {
       limpiarSeleccionDocente();
     };
   }, []);
 
-  // ============================================
-  // MODIFICADA: Cargar certificaciones al estado local
-  // ============================================
   const cargarCertificacionesState = async (id) => {
     try {
       const dbRef = ref(db);
       const snapshot = await get(child(dbRef, `certificaciones/${id}`));
       
-      // Crear un nuevo objeto de certificaciones con todos los valores en false
       const nuevasCertificaciones = {
         office2019: {
           wordAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
@@ -211,12 +203,10 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
       if (snapshot.exists()) {
         const data = snapshot.val();
         
-        // Mapear cada certificación a su estado
         for (const key in data) {
           const cert = data[key];
           const nombre = cert.nombre || '';
           
-          // Office 2019
           if (nombre.includes('Word Asociado - 2019')) {
             nuevasCertificaciones.office2019.wordAsociado = { 
               seleccionado: true, 
@@ -252,9 +242,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
               nombreArchivo: cert.nombreArchivo || '',
               archivoBase64: cert.archivoBase64 
             };
-          }
-          // Office 365
-          else if (nombre.includes('Word Asociado - 365')) {
+          } else if (nombre.includes('Word Asociado - 365')) {
             nuevasCertificaciones.office365.wordAsociado = { 
               seleccionado: true, 
               archivo: null, 
@@ -293,7 +281,6 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
         }
       }
       
-      // Establecer el nuevo estado (esto reemplazará completamente el anterior)
       setCertificaciones(nuevasCertificaciones);
       
     } catch (error) {
@@ -304,15 +291,11 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
   const cargarDocenteUnico = async (id) => {
     setLoading(true);
     try {
-      console.log('🔍 Cargando docente con ID:', id);
       const dbRef = ref(db);
       const snapshot = await get(child(dbRef, `docentes/${id}`));
       
-      console.log('📸 Snapshot existe:', snapshot.exists());
-      
       if (snapshot.exists()) {
         const docente = { id, ...snapshot.val() };
-        console.log('👤 Docente cargado:', docente);
         setDocentes([docente]);
         setSelectedDocente(docente);
         await cargarCertificacionesDocente(id);
@@ -360,9 +343,6 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     }
   };
 
-  // ============================================
-  // MODIFICADA: Cargar certificaciones del docente
-  // ============================================
   const cargarCertificacionesDocente = async (docenteId) => {
     try {
       const dbRef = ref(db);
@@ -382,15 +362,11 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
         
         setCertificacionesMap(certificadosMapObj);
         setCertificacionesDetalle(certificadosList);
-        
-        // Actualizar también el estado de checkboxes
         await cargarCertificacionesState(docenteId);
         
       } else {
         setCertificacionesMap({});
         setCertificacionesDetalle([]);
-        
-        // Resetear checkboxes si no hay certificaciones
         setCertificaciones({
           office2019: {
             wordAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
@@ -415,25 +391,17 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     }
   };
 
-  // ============================================
-  // MODIFICADA: Seleccionar docente
-  // ============================================
   const handleSelectDocente = async (docente) => {
     if (modo === 'docente') return;
     
-    // IMPORTANTE: Primero limpiar el estado actual
     limpiarSeleccionDocente();
-    
-    // Luego seleccionar el nuevo docente
     setSelectedDocente(docente);
     
-    // Cargar certificaciones con un pequeño delay para asegurar el renderizado
     setTimeout(async () => {
       await cargarCertificacionesDocente(docente.id);
     }, 50);
   };
 
-  // Funciones para edición de datos personales
   const iniciarEdicion = () => {
     setEditandoDocente({ 
       ...selectedDocente,
@@ -466,7 +434,6 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     setMensaje('');
     
     try {
-      // Guardar TODOS los campos en Firebase
       const docenteRef = ref(db, `docentes/${selectedDocente.id}`);
       await update(docenteRef, {
         apellidos: editandoDocente.apellidos,
@@ -479,17 +446,13 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
         gradoMaestria: editandoDocente.gradoMaestria
       });
       
-      // Actualizar el estado local
       setSelectedDocente(editandoDocente);
       const nuevosDocentes = docentes.map(d => 
         d.id === editandoDocente.id ? editandoDocente : d
       );
       setDocentes(nuevosDocentes);
       
-      // Obtener el estado de certificaciones
       const estadoCerts = obtenerEstadoCertificaciones();
-      
-      // Enviar a Google Sheets con todos los datos
       await actualizarGoogleSheets(editandoDocente, estadoCerts);
       
       setMensaje({ tipo: 'success', texto: '✅ Datos actualizados y sincronizados con Google Sheets' });
@@ -503,7 +466,6 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     }
   };
 
-  // Funciones para certificaciones
   const handleCertificacionToggle = (categoria, tipo) => {
     setCertificaciones(prevState => ({
       ...prevState,
@@ -653,7 +615,6 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     'Microsoft Excel Expert - 365'
   ];
 
-  // Determinar qué lista mostrar
   const docentesAMostrar = mostrarRegistrados ? docentes : docentesFaltantes;
   const tituloLista = mostrarRegistrados 
     ? `📚 Lista de Docentes (${docentes.length} registrados)`
@@ -688,7 +649,6 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
             <div className="sin-docentes">No hay docentes registrados</div>
           ) : (
             <div className="lista-contenido">
-              {/* Modo Admin: Mostrar lista de docentes */}
               {modo === 'admin' && (
                 <div className="lista-docentes">
                   <div className="lista-header-switch">
@@ -722,7 +682,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                         : '🎉 ¡Todos los docentes están registrados!'}
                     </div>
                   ) : (
-                    <>
+                    <div className="docentes-grid">
                       {docentesAMostrar.map((docente, index) => (
                         <div 
                           key={mostrarRegistrados ? docente.id : `faltante-${index}`}
@@ -760,29 +720,23 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                           )}
                         </div>
                       ))}
-                    </>
+                    </div>
                   )}
                 </div>
               )}
 
-              {/* Detalle del docente - Visible en modo admin (al seleccionar) y en modo docente */}
               {selectedDocente && (modo === 'admin' || modo === 'docente') && (
-                // ============================================
-                // KEY ÚNICA PARA FORZAR RE-RENDER COMPLETO
-                // ============================================
                 <div 
-                  key={`docente-detalle-${selectedDocente.id}-${Date.now()}`}
+                  key={`docente-detalle-${selectedDocente.id}`}
                   className="docente-detalle"
                 >
                   <div className="detalle-header">
                     <h4>📄 Información Personal</h4>
-                    {/* Botón Editar - Solo visible en modo docente */}
                     {modo === 'docente' && !modoEdicion && (
                       <button className="btn-editar-perfil" onClick={iniciarEdicion}>
                         ✏️ Editar Datos
                       </button>
                     )}
-                    {/* Botón Cancelar edición - Solo visible en modo docente y editando */}
                     {modo === 'docente' && modoEdicion && (
                       <button className="btn-cancelar-edicion-header" onClick={cancelarEdicion}>
                         ❌ Cancelar
@@ -804,11 +758,8 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                   </div>
 
                   {modo === 'docente' && modoEdicion ? (
-                    // ============================================
-                    // MODO EDICIÓN - TODOS LOS CAMPOS EDITABLES
-                    // ============================================
-                    <div className="detalle-info-edicion" key={`edit-${selectedDocente.id}`}>
-                      <div className="campo-edicion" key={`apellidos-${selectedDocente.id}`}>
+                    <div className="detalle-info-edicion">
+                      <div className="campo-edicion">
                         <label>Apellidos *</label>
                         <input 
                           type="text" 
@@ -819,7 +770,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                           required
                         />
                       </div>
-                      <div className="campo-edicion" key={`nombres-${selectedDocente.id}`}>
+                      <div className="campo-edicion">
                         <label>Nombres *</label>
                         <input 
                           type="text" 
@@ -830,7 +781,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                           required
                         />
                       </div>
-                      <div className="campo-edicion" key={`dni-${selectedDocente.id}`}>
+                      <div className="campo-edicion">
                         <label>DNI *</label>
                         <input 
                           type="text" 
@@ -841,7 +792,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                         />
                         <small className="hint-text">El DNI no se puede modificar</small>
                       </div>
-                      <div className="campo-edicion" key={`fecha-${selectedDocente.id}`}>
+                      <div className="campo-edicion">
                         <label>Fecha de Nacimiento *</label>
                         <input 
                           type="date" 
@@ -852,7 +803,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                           required
                         />
                       </div>
-                      <div className="campo-edicion" key={`genero-${selectedDocente.id}`}>
+                      <div className="campo-edicion">
                         <label>Género *</label>
                         <select 
                           name="genero" 
@@ -868,7 +819,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                           <option value="prefiero_no_decir">PREFIERO NO DECIR</option>
                         </select>
                       </div>
-                      <div className="campo-edicion" key={`correo-${selectedDocente.id}`}>
+                      <div className="campo-edicion">
                         <label>Correo Institucional *</label>
                         <input 
                           type="email" 
@@ -879,7 +830,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                           required
                         />
                       </div>
-                      <div className="campo-edicion" key={`celular-${selectedDocente.id}`}>
+                      <div className="campo-edicion">
                         <label>Celular *</label>
                         <input 
                           type="tel" 
@@ -892,7 +843,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                         />
                         <small className="hint-text">9 dígitos numéricos</small>
                       </div>
-                      <div className="campo-edicion" key={`residencia-${selectedDocente.id}`}>
+                      <div className="campo-edicion">
                         <label>Lugar de Residencia *</label>
                         <input 
                           type="text" 
@@ -903,7 +854,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                           required
                         />
                       </div>
-                      <div className="campo-edicion" key={`maestria-${selectedDocente.id}`}>
+                      <div className="campo-edicion">
                         <label>Grado de Maestría *</label>
                         <select 
                           name="gradoMaestria" 
@@ -929,42 +880,20 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                       </div>
                     </div>
                   ) : (
-                    // ============================================
-                    // MODO VISUALIZACIÓN - MOSTRAR DATOS
-                    // ============================================
-                    <div className="detalle-info" key={`info-${selectedDocente.id}`}>
-                      <p key={`nombre-${selectedDocente.id}`}>
-                        <strong>Nombres:</strong> {selectedDocente.nombres || 'No especificado'}
-                      </p>
-                      <p key={`apellido-${selectedDocente.id}`}>
-                        <strong>Apellidos:</strong> {selectedDocente.apellidos || 'No especificado'}
-                      </p>
-                      <p key={`dni-${selectedDocente.id}`}>
-                        <strong>DNI:</strong> {selectedDocente.dni || 'No especificado'}
-                      </p>
-                      <p key={`fecha-${selectedDocente.id}`}>
-                        <strong>Fecha Nacimiento:</strong> {selectedDocente.fechaNacimiento || 'No especificado'}
-                      </p>
-                      <p key={`genero-${selectedDocente.id}`}>
-                        <strong>Género:</strong> {selectedDocente.genero || 'No especificado'}
-                      </p>
-                      <p key={`correo-${selectedDocente.id}`}>
-                        <strong>Correo:</strong> {selectedDocente.correo || 'No especificado'}
-                      </p>
-                      <p key={`celular-${selectedDocente.id}`}>
-                        <strong>Celular:</strong> {selectedDocente.celular || 'No especificado'}
-                      </p>
-                      <p key={`residencia-${selectedDocente.id}`}>
-                        <strong>Residencia:</strong> {selectedDocente.lugarResidencia || 'No especificado'}
-                      </p>
-                      <p key={`maestria-${selectedDocente.id}`}>
-                        <strong>Grado Maestría:</strong> {selectedDocente.gradoMaestria || 'No especificado'}
-                      </p>
+                    <div className="detalle-info">
+                      <p><strong>Nombres:</strong> {selectedDocente.nombres || 'No especificado'}</p>
+                      <p><strong>Apellidos:</strong> {selectedDocente.apellidos || 'No especificado'}</p>
+                      <p><strong>DNI:</strong> {selectedDocente.dni || 'No especificado'}</p>
+                      <p><strong>Fecha Nacimiento:</strong> {selectedDocente.fechaNacimiento || 'No especificado'}</p>
+                      <p><strong>Género:</strong> {selectedDocente.genero || 'No especificado'}</p>
+                      <p><strong>Correo:</strong> {selectedDocente.correo || 'No especificado'}</p>
+                      <p><strong>Celular:</strong> {selectedDocente.celular || 'No especificado'}</p>
+                      <p><strong>Residencia:</strong> {selectedDocente.lugarResidencia || 'No especificado'}</p>
+                      <p><strong>Grado Maestría:</strong> {selectedDocente.gradoMaestria || 'No especificado'}</p>
                     </div>
                   )}
 
-                  {/* Sección de Certificaciones - Visible en ambos modos */}
-                  <div className="certificaciones-section" key={`certs-${selectedDocente.id}`}>
+                  <div className="certificaciones-section">
                     <div className="certificaciones-header">
                       <h4>📜 Certificaciones</h4>
                       {modo === 'docente' && !mostrarCertificaciones && (
@@ -975,13 +904,12 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                     </div>
 
                     {mostrarCertificaciones ? (
-                      <div className="certificaciones-edicion" key={`edit-certs-${selectedDocente.id}`}>
-                        {/* Office 2019 */}
+                      <div className="certificaciones-edicion">
                         <div className="certificacion-grupo">
                           <h5>Microsoft Office 2019</h5>
                           <div className="certificaciones-grid">
                             {Object.entries(certificaciones.office2019).map(([tipo, datos]) => (
-                              <div key={`${selectedDocente.id}-2019-${tipo}`} className="certificacion-card">
+                              <div key={`2019-${tipo}`} className="certificacion-card">
                                 <div className="certificacion-header">
                                   <input
                                     type="checkbox"
@@ -1007,12 +935,11 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                           </div>
                         </div>
 
-                        {/* Office 365 */}
                         <div className="certificacion-grupo">
                           <h5>Microsoft Office 365</h5>
                           <div className="certificaciones-grid">
                             {Object.entries(certificaciones.office365).map(([tipo, datos]) => (
-                              <div key={`${selectedDocente.id}-365-${tipo}`} className="certificacion-card">
+                              <div key={`365-${tipo}`} className="certificacion-card">
                                 <div className="certificacion-header">
                                   <input
                                     type="checkbox"
@@ -1048,13 +975,13 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                         </div>
                       </div>
                     ) : (
-                      <div className="certificaciones-lista" key={`view-certs-${selectedDocente.id}`}>
+                      <div className="certificaciones-lista">
                         {certificadosList.map(cert => {
                           const certificadoData = certificacionesDetalle.find(c => c.nombre === cert);
                           const tieneCertificado = !!certificacionesMap[cert];
                           
                           return (
-                            <div key={`${selectedDocente.id}-${cert}`} className="cert-item">
+                            <div key={cert} className="cert-item">
                               <span className={`check-icon ${tieneCertificado ? 'checked' : 'unchecked'}`}>
                                 {tieneCertificado ? '✅' : '❌'}
                               </span>
