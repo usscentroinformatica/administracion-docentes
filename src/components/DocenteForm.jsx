@@ -44,8 +44,8 @@ const DocenteForm = () => {
     }
   })
 
-  // ✅ URL CORRECTA DE GOOGLE APPS SCRIPT
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzw3Jqtr5M7OfeIabPCmR7hZWL698tuRkbwM1NcTLDLbQxOnWgS182h8nmSitkAK5o9/exec';
+  // ✅ URL CORRECTA DE GOOGLE APPS SCRIPT (VERSIÓN GET)
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwXaqc3KT1H_bzmoJ_U0-SWhQBWd87YJJbrI9kl-P8xYD4x_IcZSufFIsPjB596ZV34/exec';
 
   // Opciones para el select de grado de maestría
   const gradosMaestria = [
@@ -169,12 +169,13 @@ const DocenteForm = () => {
     };
   };
 
-  // ✅ FUNCIÓN ACTUALIZADA CON fetch Y CORS
+  // ✅ FUNCIÓN ACTUALIZADA CON GET (SIN CORS)
   const guardarEnGoogleSheets = async (docenteData) => {
     const estadoCertificaciones = obtenerEstadoCertificaciones();
     const fechaRegistro = new Date().toISOString();
     
-    const datosParaGoogle = {
+    // Construir URL con parámetros
+    const params = new URLSearchParams({
       fechaRegistro: fechaRegistro,
       apellidos: docenteData.apellidos,
       nombres: docenteData.nombres,
@@ -185,21 +186,29 @@ const DocenteForm = () => {
       celular: docenteData.celular,
       lugarResidencia: docenteData.lugarResidencia,
       gradoMaestria: docenteData.gradoMaestria,
-      certificaciones: estadoCertificaciones
-    };
+      word2019Asociado: estadoCertificaciones.word2019Asociado,
+      excel2019Asociado: estadoCertificaciones.excel2019Asociado,
+      ppt2019Asociado: estadoCertificaciones.ppt2019Asociado,
+      word2019Expert: estadoCertificaciones.word2019Expert,
+      excel2019Expert: estadoCertificaciones.excel2019Expert,
+      word365Asociado: estadoCertificaciones.word365Asociado,
+      excel365Asociado: estadoCertificaciones.excel365Asociado,
+      ppt365Asociado: estadoCertificaciones.ppt365Asociado,
+      word365Expert: estadoCertificaciones.word365Expert,
+      excel365Expert: estadoCertificaciones.excel365Expert
+    });
+    
+    const url = `${GOOGLE_SCRIPT_URL}?${params.toString()}`;
     
     try {
-      console.log('📤 Enviando a Google Sheets:', datosParaGoogle);
-      console.log('📅 Fecha de registro:', fechaRegistro);
-      console.log('🔗 URL:', GOOGLE_SCRIPT_URL);
+      console.log('📤 Enviando a Google Sheets (GET):', url);
       
-      const response = await fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
+      const response = await fetch(url, {
+        method: 'GET',
         mode: 'cors',
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(datosParaGoogle)
+        }
       });
       
       console.log('📊 Status de respuesta:', response.status);
@@ -218,7 +227,6 @@ const DocenteForm = () => {
       return true;
     } catch (error) {
       console.error('❌ Error al enviar a Google Sheets:', error);
-      // No lanzamos el error para no interrumpir el flujo principal
       console.warn('⚠️ No se pudo guardar en Google Sheets, pero los datos están en Firebase');
       return false;
     }
