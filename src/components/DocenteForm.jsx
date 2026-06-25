@@ -41,6 +41,12 @@ const DocenteForm = () => {
       powerpointAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
       wordExpert: { seleccionado: false, archivo: null, nombreArchivo: '' },
       excelExpert: { seleccionado: false, archivo: null, nombreArchivo: '' }
+    },
+    // ✅ NUEVA SECCIÓN: AUTOCAD
+    autocad: {
+      autocadUsuario: { seleccionado: false, archivo: null, nombreArchivo: '' },
+      autocadAvanzado: { seleccionado: false, archivo: null, nombreArchivo: '' },
+      autocad3d: { seleccionado: false, archivo: null, nombreArchivo: '' }
     }
   })
 
@@ -156,16 +162,22 @@ const DocenteForm = () => {
 
   const obtenerEstadoCertificaciones = () => {
     return {
+      // Office 2019
       word2019Asociado: certificaciones.office2019.wordAsociado.seleccionado ? 'Sí' : 'No',
       excel2019Asociado: certificaciones.office2019.excelAsociado.seleccionado ? 'Sí' : 'No',
       ppt2019Asociado: certificaciones.office2019.powerpointAsociado.seleccionado ? 'Sí' : 'No',
       word2019Expert: certificaciones.office2019.wordExpert.seleccionado ? 'Sí' : 'No',
       excel2019Expert: certificaciones.office2019.excelExpert.seleccionado ? 'Sí' : 'No',
+      // Office 365
       word365Asociado: certificaciones.office365.wordAsociado.seleccionado ? 'Sí' : 'No',
       excel365Asociado: certificaciones.office365.excelAsociado.seleccionado ? 'Sí' : 'No',
       ppt365Asociado: certificaciones.office365.powerpointAsociado.seleccionado ? 'Sí' : 'No',
       word365Expert: certificaciones.office365.wordExpert.seleccionado ? 'Sí' : 'No',
-      excel365Expert: certificaciones.office365.excelExpert.seleccionado ? 'Sí' : 'No'
+      excel365Expert: certificaciones.office365.excelExpert.seleccionado ? 'Sí' : 'No',
+      // ✅ AUTOCAD
+      autocadUsuario: certificaciones.autocad.autocadUsuario.seleccionado ? 'Sí' : 'No',
+      autocadAvanzado: certificaciones.autocad.autocadAvanzado.seleccionado ? 'Sí' : 'No',
+      autocad3d: certificaciones.autocad.autocad3d.seleccionado ? 'Sí' : 'No'
     };
   };
 
@@ -190,7 +202,6 @@ const DocenteForm = () => {
     
     try {
       console.log('📤 Enviando a Google Sheets vía proxy...');
-      console.log('🔗 URL:', GOOGLE_SCRIPT_URL);
       
       const response = await fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
@@ -199,8 +210,6 @@ const DocenteForm = () => {
         },
         body: JSON.stringify(datosParaGoogle)
       });
-      
-      console.log('📊 Status de respuesta:', response.status);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -216,7 +225,6 @@ const DocenteForm = () => {
       return true;
     } catch (error) {
       console.error('❌ Error al enviar a Google Sheets:', error);
-      console.warn('⚠️ No se pudo guardar en Google Sheets, pero los datos están en Firebase');
       return false;
     }
   };
@@ -296,6 +304,12 @@ const DocenteForm = () => {
         powerpointAsociado: 'Microsoft PowerPoint Asociado - 365',
         wordExpert: 'Microsoft Word Expert - 365',
         excelExpert: 'Microsoft Excel Expert - 365'
+      },
+      // ✅ AUTOCAD
+      autocad: {
+        autocadUsuario: 'Autodesk Certified User: AutoCAD',
+        autocadAvanzado: 'Autodesk Certified Professional: AutoCAD',
+        autocad3d: 'Autodesk Certified Professional: AutoCAD 3D'
       }
     }
     return nombres[categoria]?.[tipo] || ''
@@ -343,6 +357,11 @@ const DocenteForm = () => {
         powerpointAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
         wordExpert: { seleccionado: false, archivo: null, nombreArchivo: '' },
         excelExpert: { seleccionado: false, archivo: null, nombreArchivo: '' }
+      },
+      autocad: {
+        autocadUsuario: { seleccionado: false, archivo: null, nombreArchivo: '' },
+        autocadAvanzado: { seleccionado: false, archivo: null, nombreArchivo: '' },
+        autocad3d: { seleccionado: false, archivo: null, nombreArchivo: '' }
       }
     })
   }
@@ -655,7 +674,6 @@ const DocenteForm = () => {
           <p className="enlace-certiport">Ingresar a <a href="https://www.certiport.com" target="_blank" rel="noopener noreferrer">www.certiport.com</a></p>
           
           <div className="certificaciones-grid">
-            {/* Word Asociado 2019 */}
             <div className="certificacion-card">
               <div className="certificacion-header">
                 <input
@@ -682,7 +700,6 @@ const DocenteForm = () => {
               )}
             </div>
 
-            {/* Excel Asociado 2019 */}
             <div className="certificacion-card">
               <div className="certificacion-header">
                 <input
@@ -709,7 +726,6 @@ const DocenteForm = () => {
               )}
             </div>
 
-            {/* PowerPoint Asociado 2019 */}
             <div className="certificacion-card">
               <div className="certificacion-header">
                 <input
@@ -736,7 +752,6 @@ const DocenteForm = () => {
               )}
             </div>
 
-            {/* Word Expert 2019 */}
             <div className="certificacion-card">
               <div className="certificacion-header">
                 <input
@@ -763,7 +778,6 @@ const DocenteForm = () => {
               )}
             </div>
 
-            {/* Excel Expert 2019 */}
             <div className="certificacion-card">
               <div className="certificacion-header">
                 <input
@@ -800,7 +814,6 @@ const DocenteForm = () => {
           <p className="enlace-certiport">Ingresar a <a href="https://www.certiport.com" target="_blank" rel="noopener noreferrer">www.certiport.com</a></p>
           
           <div className="certificaciones-grid">
-            {/* Word Asociado 365 */}
             <div className="certificacion-card">
               <div className="certificacion-header">
                 <input
@@ -827,7 +840,6 @@ const DocenteForm = () => {
               )}
             </div>
 
-            {/* Excel Asociado 365 */}
             <div className="certificacion-card">
               <div className="certificacion-header">
                 <input
@@ -854,7 +866,6 @@ const DocenteForm = () => {
               )}
             </div>
 
-            {/* PowerPoint Asociado 365 */}
             <div className="certificacion-card">
               <div className="certificacion-header">
                 <input
@@ -864,8 +875,7 @@ const DocenteForm = () => {
                   onChange={() => handleCertificacionToggle('office365', 'powerpointAsociado')}
                 />
                 <label htmlFor="powerpoint_asociado_365" className="certificacion-label">
-                  Microsoft PowerPoint Asociado - 365
-                </label>
+                  Microsoft PowerPoint Asociado - 365                </label>
               </div>
               {certificaciones.office365.powerpointAsociado.seleccionado && (
                 <div className="certificacion-archivo">
@@ -881,7 +891,6 @@ const DocenteForm = () => {
               )}
             </div>
 
-            {/* Word Expert 365 */}
             <div className="certificacion-card">
               <div className="certificacion-header">
                 <input
@@ -908,7 +917,6 @@ const DocenteForm = () => {
               )}
             </div>
 
-            {/* Excel Expert 365 */}
             <div className="certificacion-card">
               <div className="certificacion-header">
                 <input
@@ -930,6 +938,97 @@ const DocenteForm = () => {
                   />
                   {certificaciones.office365.excelExpert.nombreArchivo && (
                     <small className="file-info">Archivo: {certificaciones.office365.excelExpert.nombreArchivo}</small>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ============================================ */}
+        {/* ✅ NUEVA SECCIÓN: CERTIFICACIONES AUTOCAD */}
+        {/* ============================================ */}
+        <div className="form-section">
+          <h3>🖥️ Certificación Autodesk - AutoCAD</h3>
+          <p className="enlace-certiport">Ingresar a <a href="https://www.autodesk.com/certification" target="_blank" rel="noopener noreferrer">www.autodesk.com/certification</a></p>
+          
+          <div className="certificaciones-grid">
+            {/* AutoCAD Usuario */}
+            <div className="certificacion-card">
+              <div className="certificacion-header">
+                <input
+                  type="checkbox"
+                  id="autocad_usuario"
+                  checked={certificaciones.autocad.autocadUsuario.seleccionado}
+                  onChange={() => handleCertificacionToggle('autocad', 'autocadUsuario')}
+                />
+                <label htmlFor="autocad_usuario" className="certificacion-label">
+                  🏅 Autodesk Certified User: AutoCAD
+                </label>
+              </div>
+              {certificaciones.autocad.autocadUsuario.seleccionado && (
+                <div className="certificacion-archivo">
+                  <input
+                    type="file"
+                    onChange={(e) => handleArchivoChange('autocad', 'autocadUsuario', e)}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                  />
+                  {certificaciones.autocad.autocadUsuario.nombreArchivo && (
+                    <small className="file-info">📎 {certificaciones.autocad.autocadUsuario.nombreArchivo}</small>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* AutoCAD Profesional */}
+            <div className="certificacion-card">
+              <div className="certificacion-header">
+                <input
+                  type="checkbox"
+                  id="autocad_avanzado"
+                  checked={certificaciones.autocad.autocadAvanzado.seleccionado}
+                  onChange={() => handleCertificacionToggle('autocad', 'autocadAvanzado')}
+                />
+                <label htmlFor="autocad_avanzado" className="certificacion-label">
+                  🏆 Autodesk Certified Professional: AutoCAD
+                </label>
+              </div>
+              {certificaciones.autocad.autocadAvanzado.seleccionado && (
+                <div className="certificacion-archivo">
+                  <input
+                    type="file"
+                    onChange={(e) => handleArchivoChange('autocad', 'autocadAvanzado', e)}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                  />
+                  {certificaciones.autocad.autocadAvanzado.nombreArchivo && (
+                    <small className="file-info">📎 {certificaciones.autocad.autocadAvanzado.nombreArchivo}</small>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* AutoCAD 3D */}
+            <div className="certificacion-card">
+              <div className="certificacion-header">
+                <input
+                  type="checkbox"
+                  id="autocad_3d"
+                  checked={certificaciones.autocad.autocad3d.seleccionado}
+                  onChange={() => handleCertificacionToggle('autocad', 'autocad3d')}
+                />
+                <label htmlFor="autocad_3d" className="certificacion-label">
+                  🎯 Autodesk Certified Professional: AutoCAD 3D
+                </label>
+              </div>
+              {certificaciones.autocad.autocad3d.seleccionado && (
+                <div className="certificacion-archivo">
+                  <input
+                    type="file"
+                    onChange={(e) => handleArchivoChange('autocad', 'autocad3d', e)}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                  />
+                  {certificaciones.autocad.autocad3d.nombreArchivo && (
+                    <small className="file-info">📎 {certificaciones.autocad.autocad3d.nombreArchivo}</small>
                   )}
                 </div>
               )}
