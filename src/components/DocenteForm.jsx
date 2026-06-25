@@ -45,7 +45,7 @@ const DocenteForm = () => {
   })
 
   // ⚠️ IMPORTANTE: Reemplaza esta URL con la que obtengas de Google Apps Script
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzgIf7jZYrmYJOZ7UqwAU3vlh8BobPi2gu7QyVkjMwTweHQVZav-emacAUkErgaoHoE/exec';
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxkSmF3QOCHamoi9tjoLqJcfnJVAgWlBhGd2zBU14kRn2wXQiTiLm1QGjcXPH1lNOr9/exec';
 
   // Opciones para el select de grado de maestría
   const gradosMaestria = [
@@ -155,8 +155,7 @@ const DocenteForm = () => {
   }
 
   const obtenerEstadoCertificaciones = () => {
-    console.log('🔍 Calculando estado de certificaciones...');
-    const resultado = {
+    return {
       word2019Asociado: certificaciones.office2019.wordAsociado.seleccionado ? 'Sí' : 'No',
       excel2019Asociado: certificaciones.office2019.excelAsociado.seleccionado ? 'Sí' : 'No',
       ppt2019Asociado: certificaciones.office2019.powerpointAsociado.seleccionado ? 'Sí' : 'No',
@@ -168,127 +167,45 @@ const DocenteForm = () => {
       word365Expert: certificaciones.office365.wordExpert.seleccionado ? 'Sí' : 'No',
       excel365Expert: certificaciones.office365.excelExpert.seleccionado ? 'Sí' : 'No'
     };
-    console.log('🔍 Resultado certificaciones:', resultado);
-    return resultado;
   };
 
-  // ============================================
-  // FUNCIÓN CORREGIDA - GUARDAR EN GOOGLE SHEETS (VERSIÓN ÚNICA)
-  // ============================================
   const guardarEnGoogleSheets = async (docenteData) => {
-    console.log('🔍 =========================================');
-    console.log('🔍 INICIO guardarEnGoogleSheets');
-    console.log('🔍 =========================================');
-    
-    // Verificar que docenteData existe
-    if (!docenteData) {
-      console.error('❌ docenteData es undefined o null');
-      return false;
-    }
-    
-    console.log('🔍 docenteData recibido:', JSON.stringify(docenteData, null, 2));
-    console.log('🔍 DNI recibido:', docenteData.dni);
-    console.log('🔍 Tipo de DNI:', typeof docenteData.dni);
-    
     const estadoCertificaciones = obtenerEstadoCertificaciones();
     const fechaRegistro = new Date().toISOString();
     
-    console.log('🔍 estadoCertificaciones:', estadoCertificaciones);
-    console.log('🔍 fechaRegistro:', fechaRegistro);
-    
-    // Asegurar que el DNI sea string y no tenga espacios
-    const dniString = String(docenteData.dni || '').trim();
-    console.log('🔍 DNI como string:', dniString);
-    console.log('🔍 Longitud del DNI:', dniString.length);
-    
-    if (!dniString || dniString.length === 0) {
-      console.error('❌ DNI vacío después de procesar');
-      return false;
-    }
-    
     const datosParaGoogle = {
       fechaRegistro: fechaRegistro,
-      apellidos: String(docenteData.apellidos || '').trim(),
-      nombres: String(docenteData.nombres || '').trim(),
-      dni: dniString,
-      fechaNacimiento: String(docenteData.fechaNacimiento || '').trim(),
-      genero: String(docenteData.genero || '').trim(),
-      correo: String(docenteData.correo || '').trim(),
-      celular: String(docenteData.celular || '').trim(),
-      lugarResidencia: String(docenteData.lugarResidencia || '').trim(),
-      gradoMaestria: String(docenteData.gradoMaestria || '').trim(),
+      apellidos: docenteData.apellidos,
+      nombres: docenteData.nombres,
+      dni: docenteData.dni,
+      fechaNacimiento: docenteData.fechaNacimiento,
+      genero: docenteData.genero,
+      correo: docenteData.correo,
+      celular: docenteData.celular,
+      lugarResidencia: docenteData.lugarResidencia,
+      gradoMaestria: docenteData.gradoMaestria,
       certificaciones: estadoCertificaciones
     };
     
-    console.log('🔍 datosParaGoogle final:', JSON.stringify(datosParaGoogle, null, 2));
-    console.log('🔍 DNI final:', datosParaGoogle.dni);
-    console.log('🔍 URL de Google Sheets:', GOOGLE_SCRIPT_URL);
-    
-    // ============================================
-    // MÉTODO 1: sendBeacon con FormData (el que FUNCIONÓ en la consola)
-    // ============================================
     try {
-      console.log('📤 Intentando con sendBeacon...');
+      console.log('📤 Enviando a Google Sheets:', datosParaGoogle);
+      console.log('📅 Fecha de registro:', fechaRegistro);
       
-      const formData = new FormData();
-      formData.append('data', JSON.stringify(datosParaGoogle));
-      
-      const urlParams = new URLSearchParams();
-      for (const [key, value] of formData.entries()) {
-        urlParams.append(key, value);
-      }
-      
-      console.log('📤 urlParams:', urlParams.toString());
-      
-      const blob = new Blob([urlParams.toString()], {
-        type: 'application/x-www-form-urlencoded'
-      });
-      
-      console.log('📤 Blob creado, tamaño:', blob.size);
-      
+      const blob = new Blob([JSON.stringify(datosParaGoogle)], { type: 'application/json' });
       const enviado = navigator.sendBeacon(GOOGLE_SCRIPT_URL, blob);
       
-      console.log('📤 sendBeacon resultado:', enviado);
-      
       if (enviado) {
-        console.log('✅ Datos enviados a Google Sheets con sendBeacon');
-        console.log('🔍 =========================================');
-        return true;
+        console.log('✅ Datos enviados exitosamente a Google Sheets');
       } else {
-        console.warn('⚠️ sendBeacon falló');
+        console.warn('⚠️ sendBeacon falló, pero puede que igual se envíe');
       }
-    } catch (error) {
-      console.error('❌ Error en sendBeacon:', error);
-    }
-    
-    // ============================================
-    // MÉTODO 2: fetch con no-cors (fallback)
-    // ============================================
-    try {
-      console.log('📤 Intentando con fetch (no-cors)...');
       
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(datosParaGoogle)
-      });
-      
-      console.log('✅ Datos enviados con fetch (no-cors)');
-      console.log('🔍 =========================================');
       return true;
     } catch (error) {
-      console.error('❌ Error en fetch:', error);
-      console.log('🔍 =========================================');
+      console.error('❌ Error al enviar a Google Sheets:', error);
       return false;
     }
   };
-
-  // ============================================
-  // FIN DE LAS FUNCIONES DE GOOGLE SHEETS
-  // ============================================
 
   // Validar el formulario
   const validarFormulario = () => {
@@ -484,16 +401,8 @@ const DocenteForm = () => {
       }
 
       console.log('📊 Guardando en Google Sheets...');
-      console.log('📊 Datos a enviar a Google Sheets:', docenteData);
-      console.log('📊 DNI a enviar a Google Sheets:', docenteData.dni);
-      
-      const sheetsResult = await guardarEnGoogleSheets(docenteData);
-      
-      if (sheetsResult) {
-        console.log('✅ Datos enviados a Google Sheets');
-      } else {
-        console.warn('⚠️ No se pudo guardar en Google Sheets, pero los datos están en Firebase');
-      }
+      await guardarEnGoogleSheets(docenteData);
+      console.log('✅ Datos enviados a Google Sheets');
 
       console.log('=========================================');
       console.log('🎉 REGISTRO COMPLETADO EXITOSAMENTE');
