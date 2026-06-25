@@ -45,7 +45,7 @@ const DocenteForm = () => {
   })
 
   // ⚠️ IMPORTANTE: Reemplaza esta URL con la que obtengas de Google Apps Script
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz-X1bC9BTjO3cusXraMSqj-8MV-05I3580dlEImwgbm6s4w7WET3ljCRxZmrdOf_U7/exec';
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxkSmF3QOCHamoi9tjoLqJcfnJVAgWlBhGd2zBU14kRn2wXQiTiLm1QGjcXPH1lNOr9/exec';
 
   // Opciones para el select de grado de maestría
   const gradosMaestria = [
@@ -170,84 +170,58 @@ const DocenteForm = () => {
   };
 
   // ============================================
-  // 🔥 FUNCIÓN MODIFICADA - GUARDAR EN GOOGLE SHEETS
+  // FUNCIÓN PARA GUARDAR EN GOOGLE SHEETS (CORREGIDA)
   // ============================================
   const guardarEnGoogleSheets = async (docenteData) => {
-  const estadoCertificaciones = obtenerEstadoCertificaciones();
-  const fechaRegistro = new Date().toISOString();
-  
-  const datosParaGoogle = {
-    fechaRegistro: fechaRegistro,
-    apellidos: docenteData.apellidos,
-    nombres: docenteData.nombres,
-    dni: docenteData.dni,
-    fechaNacimiento: docenteData.fechaNacimiento,
-    genero: docenteData.genero,
-    correo: docenteData.correo,
-    celular: docenteData.celular,
-    lugarResidencia: docenteData.lugarResidencia,
-    gradoMaestria: docenteData.gradoMaestria,
-    certificaciones: estadoCertificaciones
-  };
-  
-  console.log('📤 Enviando a Google Sheets:', datosParaGoogle);
-  
-  try {
-    // Enviar con fetch
-    const response = await fetch(GOOGLE_SCRIPT_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(datosParaGoogle)
-    });
+    const estadoCertificaciones = obtenerEstadoCertificaciones();
+    const fechaRegistro = new Date().toISOString();
     
-    if (response.ok) {
-      const result = await response.json();
-      console.log('✅ Respuesta de Google Sheets:', result);
-      
-      if (result.success) {
-        console.log('✅ GUARDADO EXITOSO en Google Sheets');
-        return true;
-      } else {
-        console.warn('⚠️ Error en respuesta:', result.error);
-        // Intentar con sendBeacon
-        return await guardarConBeacon(datosParaGoogle);
-      }
-    } else {
-      console.warn('⚠️ Fetch falló, intentando con sendBeacon...');
-      return await guardarConBeacon(datosParaGoogle);
-    }
-  } catch (error) {
-    console.error('❌ Error en fetch:', error);
-    // Intentar con sendBeacon
-    return await guardarConBeacon(datosParaGoogle);
-  }
-};
-
-// Función de respaldo con sendBeacon
-const guardarConBeacon = (datosParaGoogle) => {
-  return new Promise((resolve) => {
+    const datosParaGoogle = {
+      fechaRegistro: fechaRegistro,
+      apellidos: docenteData.apellidos,
+      nombres: docenteData.nombres,
+      dni: docenteData.dni,
+      fechaNacimiento: docenteData.fechaNacimiento,
+      genero: docenteData.genero,
+      correo: docenteData.correo,
+      celular: docenteData.celular,
+      lugarResidencia: docenteData.lugarResidencia,
+      gradoMaestria: docenteData.gradoMaestria,
+      certificaciones: estadoCertificaciones
+    };
+    
+    console.log('📤 Enviando a Google Sheets:', datosParaGoogle);
+    
     try {
-      const blob = new Blob([JSON.stringify(datosParaGoogle)], { 
-        type: 'application/json' 
+      // PRIMER INTENTO: Fetch normal
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(datosParaGoogle)
       });
       
-      const enviado = navigator.sendBeacon(GOOGLE_SCRIPT_URL, blob);
-      
-      if (enviado) {
-        console.log('✅ Datos enviados con sendBeacon');
-        resolve(true);
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Respuesta de Google Sheets:', result);
+        
+        if (result.success) {
+          console.log('✅ GUARDADO EXITOSO en Google Sheets');
+          return true;
+        } else {
+          console.warn('⚠️ Error en respuesta:', result.error);
+          return await guardarConBeacon(datosParaGoogle);
+        }
       } else {
-        console.warn('⚠️ sendBeacon falló');
-        resolve(false);
+        console.warn('⚠️ Fetch falló, intentando con sendBeacon...');
+        return await guardarConBeacon(datosParaGoogle);
       }
     } catch (error) {
-      console.error('❌ Error en sendBeacon:', error);
-      resolve(false);
+      console.error('❌ Error en fetch:', error);
+      return await guardarConBeacon(datosParaGoogle);
     }
-  });
-};
+  };
 
   // ============================================
   // FUNCIÓN DE RESPALDO CON SENDBEACON
@@ -276,6 +250,10 @@ const guardarConBeacon = (datosParaGoogle) => {
       }
     });
   };
+
+  // ============================================
+  // FIN DE LAS FUNCIONES DE GOOGLE SHEETS
+  // ============================================
 
   // Validar el formulario
   const validarFormulario = () => {
