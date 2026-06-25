@@ -44,8 +44,8 @@ const DocenteForm = () => {
     }
   })
 
-  // ✅ URL DE GOOGLE APPS SCRIPT (ACTUALIZA CON LA TUYA)
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwl4YRKjtGpl4iTf7uChDbh9Rp4tXc9hsC_Ubj8boRRbFyvfZAHnZXaxxXnbRm7x4OU/exec';
+  // ✅ URL DEL PROXY EN VERCEL
+  const GOOGLE_SCRIPT_URL = '/api/google-sheets';
 
   // Opciones para el select de grado de maestría
   const gradosMaestria = [
@@ -169,7 +169,7 @@ const DocenteForm = () => {
     };
   };
 
-  // ✅ FUNCIÓN OPTIMIZADA - SIN ERRORES EN CONSOLA
+  // ✅ FUNCIÓN CON PROXY - SIN CORS
   const guardarEnGoogleSheets = async (docenteData) => {
     const estadoCertificaciones = obtenerEstadoCertificaciones();
     const fechaRegistro = new Date().toISOString();
@@ -189,42 +189,34 @@ const DocenteForm = () => {
     };
     
     try {
-      console.log('📤 Enviando a Google Sheets con sendBeacon...');
+      console.log('📤 Enviando a Google Sheets vía proxy...');
+      console.log('🔗 URL:', GOOGLE_SCRIPT_URL);
       
-      // Crear el blob con los datos
-      const blob = new Blob([JSON.stringify(datosParaGoogle)], { 
-        type: 'application/json' 
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(datosParaGoogle)
       });
       
-      // ✅ USAR sendBeacon - NO tiene problemas de CORS
-      const enviado = navigator.sendBeacon(GOOGLE_SCRIPT_URL, blob);
+      console.log('📊 Status de respuesta:', response.status);
       
-      if (enviado) {
-        console.log('✅ Datos enviados exitosamente a Google Sheets');
-        return true;
-      } else {
-        console.warn('⚠️ sendBeacon falló, intentando con fetch no-cors...');
-        
-        // Fallback: usar fetch con no-cors (sin esperar respuesta)
-        try {
-          await fetch(GOOGLE_SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(datosParaGoogle)
-          });
-          console.log('✅ Datos enviados con fetch (no-cors)');
-          return true;
-        } catch (fetchError) {
-          // El error no se muestra porque es no-cors
-          console.log('ℹ️ Fetch no-cors completado (no se puede leer la respuesta)');
-          return true;
-        }
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+      
+      const result = await response.json();
+      console.log('✅ Respuesta de Google Sheets:', result);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Error al guardar en Google Sheets');
+      }
+      
+      return true;
     } catch (error) {
       console.error('❌ Error al enviar a Google Sheets:', error);
+      console.warn('⚠️ No se pudo guardar en Google Sheets, pero los datos están en Firebase');
       return false;
     }
   };
@@ -271,7 +263,7 @@ const DocenteForm = () => {
       return false
     }
 
-    // ✅ VALIDAR TAMAÑO DE ARCHIVOS DE CERTIFICACIONES (MÁXIMO 1MB)
+    // Validar tamaño de archivos de certificaciones (máximo 1MB)
     const maxSizeMB = 1;
     for (const [categoria, certificados] of Object.entries(certificaciones)) {
       for (const [tipo, datos] of Object.entries(certificados)) {
