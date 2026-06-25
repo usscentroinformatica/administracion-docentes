@@ -44,8 +44,8 @@ const DocenteForm = () => {
     }
   })
 
-  // ⚠️ IMPORTANTE: Reemplaza esta URL con la que obtengas de Google Apps Script
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNBzLe-5wAaB7EuFC8v2mZWaEq0RWBNeXa7Qsa5sWEf7m9m7nC-vxWcKsgZ2zJnnsw/exec';
+  // ✅ URL CORRECTA DE GOOGLE APPS SCRIPT
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzw_9ksIkyWJf7XHi9BpXoPcsSxunGz6rz5OW0dYWZuFuXkvKL3vGqbnU-uJlU5TsiE/exec';
 
   // Opciones para el select de grado de maestría
   const gradosMaestria = [
@@ -169,6 +169,7 @@ const DocenteForm = () => {
     };
   };
 
+  // ✅ FUNCIÓN ACTUALIZADA CON fetch Y CORS
   const guardarEnGoogleSheets = async (docenteData) => {
     const estadoCertificaciones = obtenerEstadoCertificaciones();
     const fechaRegistro = new Date().toISOString();
@@ -190,19 +191,35 @@ const DocenteForm = () => {
     try {
       console.log('📤 Enviando a Google Sheets:', datosParaGoogle);
       console.log('📅 Fecha de registro:', fechaRegistro);
+      console.log('🔗 URL:', GOOGLE_SCRIPT_URL);
       
-      const blob = new Blob([JSON.stringify(datosParaGoogle)], { type: 'application/json' });
-      const enviado = navigator.sendBeacon(GOOGLE_SCRIPT_URL, blob);
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(datosParaGoogle)
+      });
       
-      if (enviado) {
-        console.log('✅ Datos enviados exitosamente a Google Sheets');
-      } else {
-        console.warn('⚠️ sendBeacon falló, pero puede que igual se envíe');
+      console.log('📊 Status de respuesta:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('✅ Respuesta de Google Sheets:', result);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Error al guardar en Google Sheets');
       }
       
       return true;
     } catch (error) {
       console.error('❌ Error al enviar a Google Sheets:', error);
+      // No lanzamos el error para no interrumpir el flujo principal
+      console.warn('⚠️ No se pudo guardar en Google Sheets, pero los datos están en Firebase');
       return false;
     }
   };
@@ -249,12 +266,16 @@ const DocenteForm = () => {
       return false
     }
 
+    // ✅ VALIDAR TAMAÑO DE ARCHIVOS DE CERTIFICACIONES (MÁXIMO 1MB)
+    const maxSizeMB = 1;
     for (const [categoria, certificados] of Object.entries(certificaciones)) {
       for (const [tipo, datos] of Object.entries(certificados)) {
-        if (datos.seleccionado && !datos.archivo) {
-          const nombreCertificado = getNombreCertificado(categoria, tipo)
-          alert(`La certificación "${nombreCertificado}" está seleccionada pero no tiene archivo.`)
-          return false
+        if (datos.seleccionado && datos.archivo) {
+          if (datos.archivo.size > maxSizeMB * 1024 * 1024) {
+            const nombreCertificado = getNombreCertificado(categoria, tipo);
+            alert(`El archivo de "${nombreCertificado}" excede el límite de ${maxSizeMB}MB`);
+            return false;
+          }
         }
       }
     }
