@@ -33,6 +33,12 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
       powerpointAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
       wordExpert: { seleccionado: false, archivo: null, nombreArchivo: '' },
       excelExpert: { seleccionado: false, archivo: null, nombreArchivo: '' }
+    },
+    // ✅ AUTOCAD
+    autocad: {
+      autocadUsuario: { seleccionado: false, archivo: null, nombreArchivo: '' },
+      autocadAvanzado: { seleccionado: false, archivo: null, nombreArchivo: '' },
+      autocad3d: { seleccionado: false, archivo: null, nombreArchivo: '' }
     }
   });
   const [mostrarCertificaciones, setMostrarCertificaciones] = useState(false);
@@ -83,16 +89,22 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
   // Función para obtener el estado actual de las certificaciones
   const obtenerEstadoCertificaciones = () => {
     return {
+      // Office 2019
       word2019Asociado: certificaciones.office2019.wordAsociado.seleccionado ? 'Sí' : 'No',
       excel2019Asociado: certificaciones.office2019.excelAsociado.seleccionado ? 'Sí' : 'No',
       ppt2019Asociado: certificaciones.office2019.powerpointAsociado.seleccionado ? 'Sí' : 'No',
       word2019Expert: certificaciones.office2019.wordExpert.seleccionado ? 'Sí' : 'No',
       excel2019Expert: certificaciones.office2019.excelExpert.seleccionado ? 'Sí' : 'No',
+      // Office 365
       word365Asociado: certificaciones.office365.wordAsociado.seleccionado ? 'Sí' : 'No',
       excel365Asociado: certificaciones.office365.excelAsociado.seleccionado ? 'Sí' : 'No',
       ppt365Asociado: certificaciones.office365.powerpointAsociado.seleccionado ? 'Sí' : 'No',
       word365Expert: certificaciones.office365.wordExpert.seleccionado ? 'Sí' : 'No',
-      excel365Expert: certificaciones.office365.excelExpert.seleccionado ? 'Sí' : 'No'
+      excel365Expert: certificaciones.office365.excelExpert.seleccionado ? 'Sí' : 'No',
+      // ✅ AUTOCAD
+      autocadUsuario: certificaciones.autocad.autocadUsuario.seleccionado ? 'Sí' : 'No',
+      autocadAvanzado: certificaciones.autocad.autocadAvanzado.seleccionado ? 'Sí' : 'No',
+      autocad3d: certificaciones.autocad.autocad3d.seleccionado ? 'Sí' : 'No'
     };
   };
 
@@ -159,6 +171,11 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
         powerpointAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
         wordExpert: { seleccionado: false, archivo: null, nombreArchivo: '' },
         excelExpert: { seleccionado: false, archivo: null, nombreArchivo: '' }
+      },
+      autocad: {
+        autocadUsuario: { seleccionado: false, archivo: null, nombreArchivo: '' },
+        autocadAvanzado: { seleccionado: false, archivo: null, nombreArchivo: '' },
+        autocad3d: { seleccionado: false, archivo: null, nombreArchivo: '' }
       }
     });
   };
@@ -197,6 +214,12 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
           powerpointAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
           wordExpert: { seleccionado: false, archivo: null, nombreArchivo: '' },
           excelExpert: { seleccionado: false, archivo: null, nombreArchivo: '' }
+        },
+        // ✅ AUTOCAD
+        autocad: {
+          autocadUsuario: { seleccionado: false, archivo: null, nombreArchivo: '' },
+          autocadAvanzado: { seleccionado: false, archivo: null, nombreArchivo: '' },
+          autocad3d: { seleccionado: false, archivo: null, nombreArchivo: '' }
         }
       };
       
@@ -207,6 +230,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
           const cert = data[key];
           const nombre = cert.nombre || '';
           
+          // Office 2019
           if (nombre.includes('Word Asociado - 2019')) {
             nuevasCertificaciones.office2019.wordAsociado = { 
               seleccionado: true, 
@@ -242,6 +266,7 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
               nombreArchivo: cert.nombreArchivo || '',
               archivoBase64: cert.archivoBase64 
             };
+          // Office 365
           } else if (nombre.includes('Word Asociado - 365')) {
             nuevasCertificaciones.office365.wordAsociado = { 
               seleccionado: true, 
@@ -272,6 +297,28 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
             };
           } else if (nombre.includes('Excel Expert - 365')) {
             nuevasCertificaciones.office365.excelExpert = { 
+              seleccionado: true, 
+              archivo: null, 
+              nombreArchivo: cert.nombreArchivo || '',
+              archivoBase64: cert.archivoBase64 
+            };
+          // ✅ AUTOCAD
+          } else if (nombre.includes('Autodesk Certified User: AutoCAD')) {
+            nuevasCertificaciones.autocad.autocadUsuario = { 
+              seleccionado: true, 
+              archivo: null, 
+              nombreArchivo: cert.nombreArchivo || '',
+              archivoBase64: cert.archivoBase64 
+            };
+          } else if (nombre.includes('Autodesk Certified Professional: AutoCAD 3D')) {
+            nuevasCertificaciones.autocad.autocad3d = { 
+              seleccionado: true, 
+              archivo: null, 
+              nombreArchivo: cert.nombreArchivo || '',
+              archivoBase64: cert.archivoBase64 
+            };
+          } else if (nombre.includes('Autodesk Certified Professional: AutoCAD')) {
+            nuevasCertificaciones.autocad.autocadAvanzado = { 
               seleccionado: true, 
               archivo: null, 
               nombreArchivo: cert.nombreArchivo || '',
@@ -381,6 +428,11 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
             powerpointAsociado: { seleccionado: false, archivo: null, nombreArchivo: '' },
             wordExpert: { seleccionado: false, archivo: null, nombreArchivo: '' },
             excelExpert: { seleccionado: false, archivo: null, nombreArchivo: '' }
+          },
+          autocad: {
+            autocadUsuario: { seleccionado: false, archivo: null, nombreArchivo: '' },
+            autocadAvanzado: { seleccionado: false, archivo: null, nombreArchivo: '' },
+            autocad3d: { seleccionado: false, archivo: null, nombreArchivo: '' }
           }
         });
       }
@@ -520,6 +572,12 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
         powerpointAsociado: 'Microsoft PowerPoint Asociado - 365',
         wordExpert: 'Microsoft Word Expert - 365',
         excelExpert: 'Microsoft Excel Expert - 365'
+      },
+      // ✅ AUTOCAD
+      autocad: {
+        autocadUsuario: 'Autodesk Certified User: AutoCAD',
+        autocadAvanzado: 'Autodesk Certified Professional: AutoCAD',
+        autocad3d: 'Autodesk Certified Professional: AutoCAD 3D'
       }
     };
     return nombres[categoria]?.[tipo] || '';
@@ -602,17 +660,24 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
     ventana.document.close();
   };
 
+  // ✅ LISTA DE CERTIFICADOS ACTUALIZADA CON AUTOCAD
   const certificadosList = [
+    // Office 2019
     'Microsoft Word Asociado - 2019',
     'Microsoft Excel Asociado - 2019',
     'Microsoft PowerPoint Asociado - 2019',
     'Microsoft Word Expert - 2019',
     'Microsoft Excel Expert - 2019',
+    // Office 365
     'Microsoft Word Asociado - 365',
     'Microsoft Excel Asociado - 365',
     'Microsoft PowerPoint Asociado - 365',
     'Microsoft Word Expert - 365',
-    'Microsoft Excel Expert - 365'
+    'Microsoft Excel Expert - 365',
+    // ✅ AUTOCAD
+    'Autodesk Certified User: AutoCAD',
+    'Autodesk Certified Professional: AutoCAD',
+    'Autodesk Certified Professional: AutoCAD 3D'
   ];
 
   const docentesAMostrar = mostrarRegistrados ? docentes : docentesFaltantes;
@@ -965,6 +1030,37 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                           </div>
                         </div>
 
+                        {/* ✅ NUEVA SECCIÓN AUTOCAD */}
+                        <div className="certificacion-grupo">
+                          <h5>🖥️ Autodesk - AutoCAD</h5>
+                          <div className="certificaciones-grid">
+                            {Object.entries(certificaciones.autocad).map(([tipo, datos]) => (
+                              <div key={`autocad-${tipo}`} className="certificacion-card">
+                                <div className="certificacion-header">
+                                  <input
+                                    type="checkbox"
+                                    checked={datos.seleccionado}
+                                    onChange={() => handleCertificacionToggle('autocad', tipo)}
+                                  />
+                                  <label>{getNombreCertificado('autocad', tipo)}</label>
+                                </div>
+                                {datos.seleccionado && (
+                                  <div className="certificacion-archivo">
+                                    <input
+                                      type="file"
+                                      onChange={(e) => handleArchivoChange('autocad', tipo, e)}
+                                      accept=".pdf,.jpg,.jpeg,.png"
+                                    />
+                                    {datos.nombreArchivo && (
+                                      <small>Archivo: {datos.nombreArchivo}</small>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
                         <div className="acciones-certificaciones">
                           <button className="btn-guardar-cert" onClick={guardarCertificacionesDocente} disabled={cargandoActualizacion}>
                             {cargandoActualizacion ? 'Guardando...' : '💾 Guardar Certificaciones'}
@@ -979,14 +1075,15 @@ const ListaDocentes = ({ onClose, modo = 'admin', docenteId = null }) => {
                         {certificadosList.map(cert => {
                           const certificadoData = certificacionesDetalle.find(c => c.nombre === cert);
                           const tieneCertificado = !!certificacionesMap[cert];
+                          const esAutocad = cert.includes('Autodesk');
                           
                           return (
                             <div key={cert} className="cert-item">
                               <span className={`check-icon ${tieneCertificado ? 'checked' : 'unchecked'}`}>
                                 {tieneCertificado ? '✅' : '❌'}
                               </span>
-                              <span className={`cert-nombre ${tieneCertificado ? 'completado' : 'pendiente'}`}>
-                                {cert}
+                              <span className={`cert-nombre ${tieneCertificado ? 'completado' : 'pendiente'} ${esAutocad ? 'cert-autocad' : ''}`}>
+                                {esAutocad ? '🖥️ ' : ''}{cert}
                               </span>
                               {tieneCertificado && certificadoData?.archivoBase64 && (
                                 <button 
