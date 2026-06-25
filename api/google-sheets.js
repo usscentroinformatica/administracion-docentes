@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   }
 
   // Tu URL de Google Apps Script (actualiza con la tuya)
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwl4YRKjtGpl4iTf7uChDbh9Rp4tXc9hsC_Ubj8boRRbFyvfZAHnZXaxxXnbRm7x4OU/exec';
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyoMgZC7EBFsChdqF_w-YUwyuJpUvtI45RY12g6O8KwCy37jC8Lu4FLTbmjiFYIQEc/exec';
 
   try {
     // Para POST, reenviar el body
