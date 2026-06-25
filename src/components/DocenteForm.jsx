@@ -169,6 +169,9 @@ const DocenteForm = () => {
     };
   };
 
+  // ============================================
+  // 🔥 FUNCIÓN MODIFICADA - GUARDAR EN GOOGLE SHEETS
+  // ============================================
   const guardarEnGoogleSheets = async (docenteData) => {
     const estadoCertificaciones = obtenerEstadoCertificaciones();
     const fechaRegistro = new Date().toISOString();
@@ -189,22 +192,63 @@ const DocenteForm = () => {
     
     try {
       console.log('📤 Enviando a Google Sheets:', datosParaGoogle);
-      console.log('📅 Fecha de registro:', fechaRegistro);
       
-      const blob = new Blob([JSON.stringify(datosParaGoogle)], { type: 'application/json' });
-      const enviado = navigator.sendBeacon(GOOGLE_SCRIPT_URL, blob);
+      // PRIMER INTENTO: FETCH CON MODO CORS
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(datosParaGoogle)
+      });
       
-      if (enviado) {
-        console.log('✅ Datos enviados exitosamente a Google Sheets');
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Respuesta de Google Sheets:', result);
+        if (result.success) {
+          console.log('✅ Docente guardado en Google Sheets correctamente');
+          return true;
+        } else {
+          console.warn('⚠️ Google Sheets respondió con error:', result.error);
+          return await guardarConBeacon(datosParaGoogle);
+        }
       } else {
-        console.warn('⚠️ sendBeacon falló, pero puede que igual se envíe');
+        console.warn('⚠️ Fetch falló, intentando con sendBeacon...');
+        return await guardarConBeacon(datosParaGoogle);
       }
-      
-      return true;
     } catch (error) {
-      console.error('❌ Error al enviar a Google Sheets:', error);
-      return false;
+      console.error('❌ Error en fetch:', error);
+      return await guardarConBeacon(datosParaGoogle);
     }
+  };
+
+  // ============================================
+  // FUNCIÓN DE RESPALDO CON SENDBEACON
+  // ============================================
+  const guardarConBeacon = (datosParaGoogle) => {
+    return new Promise((resolve) => {
+      try {
+        console.log('📤 Intentando con sendBeacon...');
+        
+        const blob = new Blob([JSON.stringify(datosParaGoogle)], { 
+          type: 'application/json' 
+        });
+        
+        const enviado = navigator.sendBeacon(GOOGLE_SCRIPT_URL, blob);
+        
+        if (enviado) {
+          console.log('✅ Datos enviados con sendBeacon');
+          resolve(true);
+        } else {
+          console.warn('⚠️ sendBeacon falló');
+          resolve(false);
+        }
+      } catch (error) {
+        console.error('❌ Error en sendBeacon:', error);
+        resolve(false);
+      }
+    });
   };
 
   // Validar el formulario
@@ -401,8 +445,13 @@ const DocenteForm = () => {
       }
 
       console.log('📊 Guardando en Google Sheets...');
-      await guardarEnGoogleSheets(docenteData);
-      console.log('✅ Datos enviados a Google Sheets');
+      const sheetsResult = await guardarEnGoogleSheets(docenteData);
+      
+      if (sheetsResult) {
+        console.log('✅ Datos enviados a Google Sheets');
+      } else {
+        console.warn('⚠️ No se pudo guardar en Google Sheets, pero los datos están en Firebase');
+      }
 
       console.log('=========================================');
       console.log('🎉 REGISTRO COMPLETADO EXITOSAMENTE');
