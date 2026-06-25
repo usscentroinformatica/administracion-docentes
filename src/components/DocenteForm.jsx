@@ -170,58 +170,76 @@ const DocenteForm = () => {
   };
 
   // ============================================
-  // FUNCIÓN PARA GUARDAR EN GOOGLE SHEETS (CORREGIDA)
-  // ============================================
-  const guardarEnGoogleSheets = async (docenteData) => {
-    const estadoCertificaciones = obtenerEstadoCertificaciones();
-    const fechaRegistro = new Date().toISOString();
-    
-    const datosParaGoogle = {
-      fechaRegistro: fechaRegistro,
-      apellidos: docenteData.apellidos,
-      nombres: docenteData.nombres,
-      dni: docenteData.dni,
-      fechaNacimiento: docenteData.fechaNacimiento,
-      genero: docenteData.genero,
-      correo: docenteData.correo,
-      celular: docenteData.celular,
-      lugarResidencia: docenteData.lugarResidencia,
-      gradoMaestria: docenteData.gradoMaestria,
-      certificaciones: estadoCertificaciones
-    };
-    
-    console.log('📤 Enviando a Google Sheets:', datosParaGoogle);
-    
-    try {
-      // PRIMER INTENTO: Fetch normal
-      const response = await fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(datosParaGoogle)
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        console.log('✅ Respuesta de Google Sheets:', result);
-        
-        if (result.success) {
-          console.log('✅ GUARDADO EXITOSO en Google Sheets');
-          return true;
-        } else {
-          console.warn('⚠️ Error en respuesta:', result.error);
-          return await guardarConBeacon(datosParaGoogle);
-        }
-      } else {
-        console.warn('⚠️ Fetch falló, intentando con sendBeacon...');
-        return await guardarConBeacon(datosParaGoogle);
-      }
-    } catch (error) {
-      console.error('❌ Error en fetch:', error);
-      return await guardarConBeacon(datosParaGoogle);
-    }
+// FUNCIÓN DEFINITIVA - GUARDAR EN GOOGLE SHEETS
+// ============================================
+const guardarEnGoogleSheets = async (docenteData) => {
+  const estadoCertificaciones = obtenerEstadoCertificaciones();
+  const fechaRegistro = new Date().toISOString();
+  
+  const datosParaGoogle = {
+    fechaRegistro: fechaRegistro,
+    apellidos: docenteData.apellidos,
+    nombres: docenteData.nombres,
+    dni: docenteData.dni,
+    fechaNacimiento: docenteData.fechaNacimiento,
+    genero: docenteData.genero,
+    correo: docenteData.correo,
+    celular: docenteData.celular,
+    lugarResidencia: docenteData.lugarResidencia,
+    gradoMaestria: docenteData.gradoMaestria,
+    certificaciones: estadoCertificaciones
   };
+  
+  console.log('📤 Enviando a Google Sheets:', datosParaGoogle);
+  
+  // ============================================
+  // MÉTODO 1: sendBeacon con FormData (RECOMENDADO)
+  // ============================================
+  try {
+    const formData = new FormData();
+    formData.append('data', JSON.stringify(datosParaGoogle));
+    
+    // Convertir FormData a URLSearchParams para sendBeacon
+    const urlParams = new URLSearchParams();
+    for (const [key, value] of formData.entries()) {
+      urlParams.append(key, value);
+    }
+    
+    const blob = new Blob([urlParams.toString()], {
+      type: 'application/x-www-form-urlencoded'
+    });
+    
+    const enviado = navigator.sendBeacon(GOOGLE_SCRIPT_URL, blob);
+    
+    if (enviado) {
+      console.log('✅ Datos enviados a Google Sheets con sendBeacon');
+      return true;
+    } else {
+      console.warn('⚠️ sendBeacon falló');
+    }
+  } catch (error) {
+    console.warn('⚠️ Error en sendBeacon:', error);
+  }
+  
+  // ============================================
+  // MÉTODO 2: Fallback con fetch y no-cors
+  // ============================================
+  try {
+    await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(datosParaGoogle)
+    });
+    console.log('✅ Datos enviados con fetch (no-cors)');
+    return true;
+  } catch (error) {
+    console.error('❌ Error en fetch:', error);
+    return false;
+  }
+};
 
   // ============================================
   // FUNCIÓN DE RESPALDO CON SENDBEACON
