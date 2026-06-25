@@ -44,8 +44,8 @@ const DocenteForm = () => {
     }
   })
 
-  // ✅ URL CORRECTA DE GOOGLE APPS SCRIPT (VERSIÓN GET)
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwXaqc3KT1H_bzmoJ_U0-SWhQBWd87YJJbrI9kl-P8xYD4x_IcZSufFIsPjB596ZV34/exec';
+  // ✅ URL CORRECTA - ACTUALIZA CON LA QUE TE DA GOOGLE
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwl4YRKjtGpl4iTf7uChDbh9Rp4tXc9hsC_Ubj8boRRbFyvfZAHnZXaxxXnbRm7x4OU/exec';
 
   // Opciones para el select de grado de maestría
   const gradosMaestria = [
@@ -169,13 +169,12 @@ const DocenteForm = () => {
     };
   };
 
-  // ✅ FUNCIÓN ACTUALIZADA CON GET (SIN CORS)
+  // ✅ FUNCIÓN CON sendBeacon (LA ÚNICA QUE FUNCIONA)
   const guardarEnGoogleSheets = async (docenteData) => {
     const estadoCertificaciones = obtenerEstadoCertificaciones();
     const fechaRegistro = new Date().toISOString();
     
-    // Construir URL con parámetros
-    const params = new URLSearchParams({
+    const datosParaGoogle = {
       fechaRegistro: fechaRegistro,
       apellidos: docenteData.apellidos,
       nombres: docenteData.nombres,
@@ -186,48 +185,45 @@ const DocenteForm = () => {
       celular: docenteData.celular,
       lugarResidencia: docenteData.lugarResidencia,
       gradoMaestria: docenteData.gradoMaestria,
-      word2019Asociado: estadoCertificaciones.word2019Asociado,
-      excel2019Asociado: estadoCertificaciones.excel2019Asociado,
-      ppt2019Asociado: estadoCertificaciones.ppt2019Asociado,
-      word2019Expert: estadoCertificaciones.word2019Expert,
-      excel2019Expert: estadoCertificaciones.excel2019Expert,
-      word365Asociado: estadoCertificaciones.word365Asociado,
-      excel365Asociado: estadoCertificaciones.excel365Asociado,
-      ppt365Asociado: estadoCertificaciones.ppt365Asociado,
-      word365Expert: estadoCertificaciones.word365Expert,
-      excel365Expert: estadoCertificaciones.excel365Expert
-    });
-    
-    const url = `${GOOGLE_SCRIPT_URL}?${params.toString()}`;
+      certificaciones: estadoCertificaciones
+    };
     
     try {
-      console.log('📤 Enviando a Google Sheets (GET):', url);
+      console.log('📤 Enviando a Google Sheets con sendBeacon...');
       
-      const response = await fetch(url, {
-        method: 'GET',
-        mode: 'cors',
-        headers: {
-          'Content-Type': 'application/json',
-        }
+      // Crear el blob con los datos
+      const blob = new Blob([JSON.stringify(datosParaGoogle)], { 
+        type: 'application/json' 
       });
       
-      console.log('📊 Status de respuesta:', response.status);
+      // ✅ USAR sendBeacon - NO tiene problemas de CORS
+      const enviado = navigator.sendBeacon(GOOGLE_SCRIPT_URL, blob);
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (enviado) {
+        console.log('✅ Datos enviados exitosamente a Google Sheets');
+        return true;
+      } else {
+        console.warn('⚠️ sendBeacon falló');
+        
+        // Fallback: intentar con fetch en modo no-cors
+        try {
+          await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(datosParaGoogle)
+          });
+          console.log('✅ Datos enviados con fetch (no-cors)');
+          return true;
+        } catch (fetchError) {
+          console.error('❌ También falló fetch:', fetchError);
+          return false;
+        }
       }
-      
-      const result = await response.json();
-      console.log('✅ Respuesta de Google Sheets:', result);
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Error al guardar en Google Sheets');
-      }
-      
-      return true;
     } catch (error) {
       console.error('❌ Error al enviar a Google Sheets:', error);
-      console.warn('⚠️ No se pudo guardar en Google Sheets, pero los datos están en Firebase');
       return false;
     }
   };
