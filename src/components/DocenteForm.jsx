@@ -173,55 +173,81 @@ const DocenteForm = () => {
   // 🔥 FUNCIÓN MODIFICADA - GUARDAR EN GOOGLE SHEETS
   // ============================================
   const guardarEnGoogleSheets = async (docenteData) => {
-    const estadoCertificaciones = obtenerEstadoCertificaciones();
-    const fechaRegistro = new Date().toISOString();
+  const estadoCertificaciones = obtenerEstadoCertificaciones();
+  const fechaRegistro = new Date().toISOString();
+  
+  const datosParaGoogle = {
+    fechaRegistro: fechaRegistro,
+    apellidos: docenteData.apellidos,
+    nombres: docenteData.nombres,
+    dni: docenteData.dni,
+    fechaNacimiento: docenteData.fechaNacimiento,
+    genero: docenteData.genero,
+    correo: docenteData.correo,
+    celular: docenteData.celular,
+    lugarResidencia: docenteData.lugarResidencia,
+    gradoMaestria: docenteData.gradoMaestria,
+    certificaciones: estadoCertificaciones
+  };
+  
+  console.log('📤 Enviando a Google Sheets:', datosParaGoogle);
+  
+  try {
+    // Enviar con fetch
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(datosParaGoogle)
+    });
     
-    const datosParaGoogle = {
-      fechaRegistro: fechaRegistro,
-      apellidos: docenteData.apellidos,
-      nombres: docenteData.nombres,
-      dni: docenteData.dni,
-      fechaNacimiento: docenteData.fechaNacimiento,
-      genero: docenteData.genero,
-      correo: docenteData.correo,
-      celular: docenteData.celular,
-      lugarResidencia: docenteData.lugarResidencia,
-      gradoMaestria: docenteData.gradoMaestria,
-      certificaciones: estadoCertificaciones
-    };
-    
-    try {
-      console.log('📤 Enviando a Google Sheets:', datosParaGoogle);
+    if (response.ok) {
+      const result = await response.json();
+      console.log('✅ Respuesta de Google Sheets:', result);
       
-      // PRIMER INTENTO: FETCH CON MODO CORS
-      const response = await fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        mode: 'cors',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(datosParaGoogle)
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        console.log('✅ Respuesta de Google Sheets:', result);
-        if (result.success) {
-          console.log('✅ Docente guardado en Google Sheets correctamente');
-          return true;
-        } else {
-          console.warn('⚠️ Google Sheets respondió con error:', result.error);
-          return await guardarConBeacon(datosParaGoogle);
-        }
+      if (result.success) {
+        console.log('✅ GUARDADO EXITOSO en Google Sheets');
+        return true;
       } else {
-        console.warn('⚠️ Fetch falló, intentando con sendBeacon...');
+        console.warn('⚠️ Error en respuesta:', result.error);
+        // Intentar con sendBeacon
         return await guardarConBeacon(datosParaGoogle);
       }
-    } catch (error) {
-      console.error('❌ Error en fetch:', error);
+    } else {
+      console.warn('⚠️ Fetch falló, intentando con sendBeacon...');
       return await guardarConBeacon(datosParaGoogle);
     }
-  };
+  } catch (error) {
+    console.error('❌ Error en fetch:', error);
+    // Intentar con sendBeacon
+    return await guardarConBeacon(datosParaGoogle);
+  }
+};
+
+// Función de respaldo con sendBeacon
+const guardarConBeacon = (datosParaGoogle) => {
+  return new Promise((resolve) => {
+    try {
+      const blob = new Blob([JSON.stringify(datosParaGoogle)], { 
+        type: 'application/json' 
+      });
+      
+      const enviado = navigator.sendBeacon(GOOGLE_SCRIPT_URL, blob);
+      
+      if (enviado) {
+        console.log('✅ Datos enviados con sendBeacon');
+        resolve(true);
+      } else {
+        console.warn('⚠️ sendBeacon falló');
+        resolve(false);
+      }
+    } catch (error) {
+      console.error('❌ Error en sendBeacon:', error);
+      resolve(false);
+    }
+  });
+};
 
   // ============================================
   // FUNCIÓN DE RESPALDO CON SENDBEACON
