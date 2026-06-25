@@ -45,7 +45,7 @@ const DocenteForm = () => {
   })
 
   // ⚠️ IMPORTANTE: Reemplaza esta URL con la que obtengas de Google Apps Script
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxkSmF3QOCHamoi9tjoLqJcfnJVAgWlBhGd2zBU14kRn2wXQiTiLm1QGjcXPH1lNOr9/exec';
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNBzLe-5wAaB7EuFC8v2mZWaEq0RWBNeXa7Qsa5sWEf7m9m7nC-vxWcKsgZ2zJnnsw/exec';
 
   // Opciones para el select de grado de maestría
   const gradosMaestria = [
